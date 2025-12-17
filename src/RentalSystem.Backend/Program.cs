@@ -1,41 +1,64 @@
-var builder = WebApplication.CreateBuilder(args);
+using Google.Cloud.Firestore;
+using RentalSystem.Shared.Constants;
+using RentalSystem.Shared.Models;
+using System.Reflection;
+using System.Text;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var builder = WebApplication.CreateBuilder(args);
+string path = Path.Combine(Directory.GetCurrentDirectory(), Constants.FIREBASE_KEY_FILENAME);
+Console.WriteLine($"U¿ywany plik klucza Firebase: {path}");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", path);
+
+builder.Services.AddSingleton<FirestoreDb>(provider =>
+{
+    string projectId = Constants.FIRESTORE_PROJECT_ID;
+    return FirestoreDb.Create(projectId);
+});
+
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
+app.UseCors("AllowAll");
+app.UseAuthorization();
+app.MapControllers();
+app.MapGet("/api/test-db", async (FirestoreDb db) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    try
+    {
+        var snapshot = await db.Collection("users").Limit(1).GetSnapshotAsync();
+        return Results.Ok($"Po³¹czono z Firebase! Projekt ID: {db.ProjectId}");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"B³¹d po³¹czenia: {ex.Message}");
+    }
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapPost("add/user", async (FirestoreDb db) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    UserProfile newUserProfile = new UserProfile    
+    );
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
