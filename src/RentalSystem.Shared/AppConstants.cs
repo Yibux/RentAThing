@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RentalSystem.Shared.Constants
+namespace RentalSystem.Shared.AppConstants
 {
-    public static class MyConstants
+    public static class AppConstants
     {
         // Firebase
         public const string FIREBASE_KEY_FILENAME = "rentathing-cb445-firebase-adminsdk-fbsvc-7f58dba35f.json";

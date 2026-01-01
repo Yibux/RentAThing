@@ -1,41 +1,68 @@
 using Google.Cloud.Firestore;
-using RentalSystem.Shared.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using RentalSystem.Backend.Services;
 using RentalSystem.Shared.Models;
-using RentalSystem.Shared.MyConstants;
-using System.Reflection;
-using System.Text;
+using RentalSystem.Shared;
+using RentalSystem.Shared.AppConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Konfiguracja œcie¿ki do klucza Firebase
-string path = Path.Combine(Directory.GetCurrentDirectory(), MyConstants.FIREBASE_KEY_FILENAME);
-Console.WriteLine($"U¿ywany plik klucza Firebase: {path}");
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", path);
+string projectId = AppConstants.FIRESTORE_PROJECT_ID;
+string keyPath = Path.Combine(Directory.GetCurrentDirectory(),AppConstants.FIREBASE_KEY_FILENAME);
 
-// Rejestracja FirestoreDb
-builder.Services.AddSingleton<FirestoreDb>(provider =>
-{
-    string projectId = MyConstants.FIRESTORE_PROJECT_ID;
-    return FirestoreDb.Create(projectId);
-});
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", keyPath);
 
-// WA¯NE: Rejestracja Twojego serwisu u¿ytkowników
-// Dziêki temu mo¿esz go wstrzykiwaæ do kontrolerów
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var authority = $"https://securetoken.google.com/{projectId}";
+
+        options.Authority = authority;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = authority,
+
+            ValidateAudience = true,
+            ValidAudience = projectId,
+
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddSingleton<FirestoreDb>(provider => FirestoreDb.Create(projectId));
 builder.Services.AddScoped<IUsersService, UsersService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Wpisz 'Bearer <twoj_token>' w polu poni¿ej."
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
         {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 var app = builder.Build();
@@ -48,21 +75,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.MapGet("/api/test-db", async (FirestoreDb db) =>
-{
-    try
-    {
-        var snapshot = await db.Collection("users").Limit(1).GetSnapshotAsync();
-        return Results.Ok($"Po³¹czono z Firebase! Projekt ID: {db.ProjectId}");
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"B³¹d po³¹czenia: {ex.Message}");
-    }
-});
 
 app.Run();

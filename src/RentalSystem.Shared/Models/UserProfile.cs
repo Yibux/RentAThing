@@ -18,13 +18,13 @@ namespace RentalSystem.Shared.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [FirestoreProperty]
-        public string DisplayName { get; set; }
+        public string Name { get; set; }
+
+        [FirestoreProperty]
+        public string Surname{ get; set; }
 
         [FirestoreProperty]
         public string Email { get; set; }
-
-        [FirestoreProperty]
-        public List<string> Favorites { get; set; } = new List<string>();
 
         [FirestoreDocumentId]
         public string Id { get; set; }
@@ -36,6 +36,6 @@ namespace RentalSystem.Shared.Models
         public string PhoneNumber { get; set; }
 
         [FirestoreProperty]
-        public string Role { get; set; } = "USER";
+        public string Role { get; set; }
     }
 }

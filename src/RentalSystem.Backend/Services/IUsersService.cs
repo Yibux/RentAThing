@@ -1,9 +1,8 @@
 ﻿using Google.Cloud.Firestore;
 using Microsoft.VisualBasic;
-using RentalSystem.Shared.Constants;
+using RentalSystem.Shared.AppConstants;
 using RentalSystem.Shared.DTOs;
 using RentalSystem.Shared.Models;
-using RentalSystem.Shared.MyConstants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +25,7 @@ namespace RentalSystem.Backend.Services
     public class UsersService : IUsersService
     {
         private readonly FirestoreDb _db;
-        private const string CollectionName = MyConstants.FIREBASE_USER_COLLECTION;
+        private const string CollectionName = AppConstants.FIREBASE_USER_COLLECTION;
 
         public UsersService(FirestoreDb db)
         {
@@ -37,13 +36,13 @@ namespace RentalSystem.Backend.Services
         {
             var newUser = new UserProfile
             {
-                Id = request.Uid,
+                CreatedAt = DateTime.UtcNow,
                 Email = request.Email,
-                DisplayName = request.DisplayName,
+                IsBanned = false,
+                Name = request.Name,
                 PhoneNumber = request.PhoneNumber ?? "",
                 Role = "USER",
-                IsBanned = false,
-                CreatedAt = DateTime.UtcNow
+                Surname = request.Surname
             };
 
             var docRef = _db.Collection(CollectionName).Document(newUser.Id);
