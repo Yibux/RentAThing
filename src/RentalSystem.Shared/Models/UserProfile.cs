@@ -11,31 +11,31 @@ namespace RentalSystem.Shared.Models
     [FirestoreData]
     public class UserProfile
     {
-        [FirestoreDocumentId]
-        public string Id { get; set; }
+        [FirestoreProperty]
+        public double AverageRating { get; set; } = 0.0;
 
         [FirestoreProperty]
-        public string Email { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [FirestoreProperty]
         public string DisplayName { get; set; }
 
         [FirestoreProperty]
-        public string AvatarUrl { get; set; }
+        public string Email { get; set; }
 
         [FirestoreProperty]
-        public string Role { get; set; } = "USER";
+        public List<string> Favorites { get; set; } = new List<string>();
+
+        [FirestoreDocumentId]
+        public string Id { get; set; }
 
         [FirestoreProperty]
         public bool IsBanned { get; set; } = false;
 
         [FirestoreProperty]
-        public double AverageRating { get; set; } = 0.0;
+        public string PhoneNumber { get; set; }
 
         [FirestoreProperty]
-        public List<string> Favorites { get; set; } = new List<string>();
-
-        [FirestoreProperty]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string Role { get; set; } = "USER";
     }
 }

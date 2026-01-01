@@ -1,24 +1,32 @@
 using Google.Cloud.Firestore;
-using RentalSystem.Shared.Constants;
+using RentalSystem.Shared.Services;
 using RentalSystem.Shared.Models;
+using RentalSystem.Shared.MyConstants;
 using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-string path = Path.Combine(Directory.GetCurrentDirectory(), Constants.FIREBASE_KEY_FILENAME);
+
+// Konfiguracja œcie¿ki do klucza Firebase
+string path = Path.Combine(Directory.GetCurrentDirectory(), MyConstants.FIREBASE_KEY_FILENAME);
 Console.WriteLine($"U¿ywany plik klucza Firebase: {path}");
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", path);
 
+// Rejestracja FirestoreDb
 builder.Services.AddSingleton<FirestoreDb>(provider =>
 {
-    string projectId = Constants.FIRESTORE_PROJECT_ID;
+    string projectId = MyConstants.FIRESTORE_PROJECT_ID;
     return FirestoreDb.Create(projectId);
 });
 
+// WA¯NE: Rejestracja Twojego serwisu u¿ytkowników
+// Dziêki temu mo¿esz go wstrzykiwaæ do kontrolerów
+builder.Services.AddScoped<IUsersService, UsersService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -41,7 +49,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.MapGet("/api/test-db", async (FirestoreDb db) =>
 {
     try
@@ -53,12 +63,6 @@ app.MapGet("/api/test-db", async (FirestoreDb db) =>
     {
         return Results.Problem($"B³¹d po³¹czenia: {ex.Message}");
     }
-});
-
-app.MapPost("add/user", async (FirestoreDb db) =>
-{
-    UserProfile newUserProfile = new UserProfile    
-    );
 });
 
 app.Run();

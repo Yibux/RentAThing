@@ -11,55 +11,58 @@ namespace RentalSystem.Shared.Models
     [FirestoreData]
     public class Item
     {
-        [FirestoreDocumentId]
-        public string Id { get; set; }
-
-        [FirestoreProperty]
-        public string Title { get; set; }
-
-        [FirestoreProperty]
-        public string Description { get; set; }
-
         [FirestoreProperty]
         public string Category { get; set; }
 
         [FirestoreProperty]
-        public decimal PricePerDay { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [FirestoreProperty]
         public string Currency { get; set; } = "PLN";
 
         [FirestoreProperty]
-        public List<string> Photos { get; set; } = new List<string>();
+        public string Description { get; set; }
 
-        [FirestoreProperty]
-        public string OwnerId { get; set; }
-
-        [FirestoreProperty]
-        public string OwnerName { get; set; }
-
-        [FirestoreProperty]
-        public string OwnerAvatarUrl { get; set; }
+        [FirestoreDocumentId]
+        public string Id { get; set; }
 
         [FirestoreProperty]
         public ItemLocation Location { get; set; }
 
         [FirestoreProperty]
-        public string Status { get; set; } = "PENDING";
+        public string OwnerId { get; set; }
+
+        [FirestoreProperty]
+        public List<string> Photos { get; set; } = new List<string>();
+
+        [FirestoreProperty]
+        public decimal PricePerDay { get; set; }
 
         [FirestoreProperty]
         public string? RejectionReason { get; set; }
 
         [FirestoreProperty]
-        public double AverageRating { get; set; }
+        public string Status { get; set; } = "PENDING";
 
         [FirestoreProperty]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string Title { get; set; }
     }
 
     [FirestoreData]
     public class ItemLocation
     {
+        [FirestoreProperty]
+        public string AddressLabel { get; set; }
+
+        [FirestoreProperty]
+        public string City { get; set; }
+
+        [FirestoreProperty]
+        public string Country { get; set; }
+
+        [FirestoreProperty]
+        public string HouseNumber { get; set; }
+
         [FirestoreProperty]
         public double Latitude { get; set; }
 
@@ -67,6 +70,9 @@ namespace RentalSystem.Shared.Models
         public double Longitude { get; set; }
 
         [FirestoreProperty]
-        public string AddressLabel { get; set; }
+        public string PostalCode { get; set; }
+
+        [FirestoreProperty]
+        public string Street { get; set; }
     }
 }
