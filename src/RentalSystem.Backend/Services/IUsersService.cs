@@ -1,5 +1,4 @@
 ﻿using Google.Cloud.Firestore;
-using Microsoft.VisualBasic;
 using RentalSystem.Shared.AppConstants;
 using RentalSystem.Shared.DTOs;
 using RentalSystem.Shared.Models;
@@ -12,36 +11,36 @@ namespace RentalSystem.Backend.Services
 {
     public interface IUsersService
     {
-        Task<UserProfile> AddUserAsync(CreateUserRequest request);
+        Task<UserProfile> AddUserAsync(string uid, CreateUserRequest request);
 
         Task<UserProfile?> GetUserByIdAsync(string uid);
         Task<List<UserProfile>> GetAllUsersAsync();
-
         Task<bool> UpdateUserAsync(string uid, UpdateUserRequest request);
-
         Task<bool> DeleteUserAsync(string uid);
     }
 
     public class UsersService : IUsersService
     {
         private readonly FirestoreDb _db;
-        private const string CollectionName = AppConstants.FIREBASE_USER_COLLECTION;
+        private const string CollectionName = "users";
 
         public UsersService(FirestoreDb db)
         {
             _db = db;
         }
 
-        public async Task<UserProfile> AddUserAsync(CreateUserRequest request)
+        public async Task<UserProfile> AddUserAsync(string uid, CreateUserRequest request)
         {
             var newUser = new UserProfile
             {
+                AverageRating = 0.0,
                 CreatedAt = DateTime.UtcNow,
                 Email = request.Email,
+                Id = uid,
                 IsBanned = false,
                 Name = request.Name,
                 PhoneNumber = request.PhoneNumber ?? "",
-                Role = "USER",
+                Role = string.IsNullOrEmpty(request.Role) ? "USER" : request.Role,
                 Surname = request.Surname
             };
 
@@ -77,14 +76,16 @@ namespace RentalSystem.Backend.Services
         public async Task<bool> UpdateUserAsync(string uid, UpdateUserRequest request)
         {
             var docRef = _db.Collection(CollectionName).Document(uid);
-
             var snapshot = await docRef.GetSnapshotAsync();
             if (!snapshot.Exists) return false;
 
             var updates = new Dictionary<string, object>();
 
-            if (!string.IsNullOrEmpty(request.DisplayName))
-                updates["DisplayName"] = request.DisplayName;
+            if (request.IsBanned.HasValue)
+                updates["IsBanned"] = request.IsBanned.Value;
+
+            if (!string.IsNullOrEmpty(request.Name))
+                updates["Name"] = request.Name;
 
             if (!string.IsNullOrEmpty(request.PhoneNumber))
                 updates["PhoneNumber"] = request.PhoneNumber;
@@ -92,8 +93,8 @@ namespace RentalSystem.Backend.Services
             if (!string.IsNullOrEmpty(request.Role))
                 updates["Role"] = request.Role;
 
-            if (request.IsBanned.HasValue)
-                updates["IsBanned"] = request.IsBanned.Value;
+            if (!string.IsNullOrEmpty(request.Surname))
+                updates["Surname"] = request.Surname;
 
             if (updates.Count > 0)
             {

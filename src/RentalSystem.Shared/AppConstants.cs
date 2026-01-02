@@ -9,7 +9,7 @@ namespace RentalSystem.Shared.AppConstants
     public static class AppConstants
     {
         // Firebase
-        public const string FIREBASE_KEY_FILENAME = "rentathing-cb445-firebase-adminsdk-fbsvc-7f58dba35f.json";
+        public const string FIREBASE_KEY_FILENAME = "firebase_config.json";
         public const string FIREBASE_USER_COLLECTION = "users";
         public const string FIRESTORE_PROJECT_ID = "rentathing-cb445";
     }

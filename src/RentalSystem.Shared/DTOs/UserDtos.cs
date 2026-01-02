@@ -18,9 +18,10 @@ namespace RentalSystem.Shared.DTOs
 
     public class UpdateUserRequest
     {
-        public string DisplayName { get; set; }
         public bool? IsBanned { get; set; }
+        public string Name { get; set; }
         public string PhoneNumber { get; set; }
         public string Role { get; set; }
+        public string Surname { get; set; }
     }
 }

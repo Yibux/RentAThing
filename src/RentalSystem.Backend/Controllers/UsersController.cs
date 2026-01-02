@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RentalSystem.Backend.Services;
 using RentalSystem.Shared.DTOs;
-using RentalSystem.Shared.Models;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -24,15 +22,14 @@ namespace RentalSystem.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
-            // BEZPIECZEŃSTWO: Pobieramy ID użytkownika z Tokena (z nagłówka), a nie z JSONa, który ktoś mógł podrobić.
             var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdFromToken))
-                return Unauthorized("Brak ID w tokenie.");
+            {
+                return Unauthorized("Token does not contain a valid User ID.");
+            }
 
-            request.Uid = userIdFromToken;
-
-            var createdUser = await _usersService.AddUserAsync(request);
+            var createdUser = await _usersService.AddUserAsync(userIdFromToken, request);
 
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
@@ -44,7 +41,7 @@ namespace RentalSystem.Backend.Controllers
             if (myId == null) return Unauthorized();
 
             var user = await _usersService.GetUserByIdAsync(myId);
-            if (user == null) return NotFound("Profil nie istnieje.");
+            if (user == null) return NotFound("User profile not found.");
 
             return Ok(user);
         }
@@ -68,7 +65,7 @@ namespace RentalSystem.Backend.Controllers
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
             var success = await _usersService.UpdateUserAsync(id, request);
-            if (!success) return NotFound($"User with id {id} not found.");
+            if (!success) return NotFound();
 
             return NoContent();
         }

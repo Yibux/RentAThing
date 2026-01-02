@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 string projectId = AppConstants.FIRESTORE_PROJECT_ID;
 string keyPath = Path.Combine(Directory.GetCurrentDirectory(),AppConstants.FIREBASE_KEY_FILENAME);
+if (!File.Exists(keyPath))
+{
+    throw new Exception("Config do firestore nie istnieje");
+}
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", keyPath);
 
