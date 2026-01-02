@@ -18,24 +18,24 @@ namespace RentalSystem.Shared.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [FirestoreProperty]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [FirestoreProperty]
-        public string Surname{ get; set; }
+        public string Surname{ get; set; } = string.Empty;
 
         [FirestoreProperty]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [FirestoreDocumentId]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [FirestoreProperty]
         public bool IsBanned { get; set; } = false;
 
         [FirestoreProperty]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [FirestoreProperty]
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
     }
 }
