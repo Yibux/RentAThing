@@ -33,11 +33,8 @@ namespace RentalSystem.Backend.Services
         {
             var newUser = new UserProfile
             {
-                AverageRating = 0.0,
-                CreatedAt = DateTime.UtcNow,
                 Email = request.Email,
                 Id = uid,
-                IsBanned = false,
                 Name = request.Name,
                 PhoneNumber = request.PhoneNumber ?? "",
                 Role = string.IsNullOrEmpty(request.Role) ? "USER" : request.Role,
