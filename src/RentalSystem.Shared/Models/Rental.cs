@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RentalSystem.Shared.Converters;
 
 using Google.Cloud.Firestore;
 
@@ -35,7 +36,7 @@ namespace RentalSystem.Shared.Models
         [FirestoreProperty]
         public List<string> Photos { get; set; }
 
-        [FirestoreProperty]
+        [FirestoreProperty(ConverterType = typeof(DecimalConverter))]
         public decimal Price { get; set; }
 
         [FirestoreProperty]
