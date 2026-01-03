@@ -46,6 +46,8 @@ builder.Services
 
 builder.Services.AddSingleton<FirestoreDb>(provider => FirestoreDb.Create(projectId));
 builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IItemsService, ItemsService>();
+builder.Services.AddScoped<IRentalsService, RentalsService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

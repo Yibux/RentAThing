@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Google.Cloud.Firestore;
+using RentalSystem.Shared.Converters;
 
 namespace RentalSystem.Shared.Models
 {
@@ -35,7 +36,7 @@ namespace RentalSystem.Shared.Models
         [FirestoreProperty]
         public List<string> Photos { get; set; } = new List<string>();
 
-        [FirestoreProperty]
+        [FirestoreProperty(ConverterType = typeof(DecimalConverter))]
         public decimal PricePerDay { get; set; }
 
         [FirestoreProperty]
