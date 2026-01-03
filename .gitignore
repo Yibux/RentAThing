@@ -484,5 +484,4 @@ $RECYCLE.BIN/
 *.swp
 
 # Firebase Keys
-firebase-config.json
-
+firebase_config.json

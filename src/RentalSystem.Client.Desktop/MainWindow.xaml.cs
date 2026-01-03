@@ -1,23 +1,35 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
-namespace RentalSystem.Client.Desktop;
-
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
-public partial class MainWindow : Window
+namespace RentalSystem.Client.Desktop
 {
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
+        private readonly string _token;
+
+        public MainWindow(string token)
+        {
+            InitializeComponent();
+            _token = token;
+
+            MainFrame.Navigate(new UsersPage(_token));
+        }
+
+        public MainWindow() : this("") { }
+
+        private void BtnUsers_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new UsersPage(_token));
+        }
+
+        private void BtnListings_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new ListingsPage(_token));
+        }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            new LoginWindow().Show();
+            this.Close();
+        }
     }
 }
