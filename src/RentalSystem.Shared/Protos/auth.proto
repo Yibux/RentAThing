@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option csharp_namespace = "RentalSystem.Shared.Protos";
+
+package auth;
+
+service AuthService {
+  rpc GetMyProfile (EmptyRequest) returns (UserProfileResponse);
+  rpc GetAllUsers (EmptyRequest) returns (UsersListResponse);
+  rpc SetUserBanStatus (BanUserRequest) returns (ActionResponse);
+}
+
+message EmptyRequest {}
+
+message UserProfileResponse {
+  string id = 1;
+  string email = 2;
+  string role = 3;
+  string name = 4;
+  string surname = 5;
+  bool is_banned = 6;
+  string phone_number = 7;
+}
+
+message UsersListResponse {
+  repeated UserProfileResponse users = 1;
+}
+
+message BanUserRequest {
+  string user_id = 1;
+  bool is_banned = 2;
+}
+
+message ActionResponse {
+  bool success = 1;
+  string message = 2;
+}

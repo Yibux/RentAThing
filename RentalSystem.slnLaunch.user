@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Server with Admin Desktop App",
+    "Projects": [
+      {
+        "Path": "src\\RentalSystem.Backend\\RentalSystem.Backend.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\RentalSystem.Client.Desktop\\RentalSystem.Client.Desktop.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
