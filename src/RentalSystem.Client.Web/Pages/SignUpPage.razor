@@ -1,6 +1,7 @@
 @page "/signUp"
 @using RentalSystem.Shared.DTOs
 @using RentalSystem.Client.Web.Http
+@using System.Text.RegularExpressions
 @inject UsersApiClient Client
 @layout EmptyLayout
 @inject IJSRuntime JS
@@ -12,8 +13,14 @@
         <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
     </RadzenColumn>
 
-    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
+    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px; visibility: visible; text-align: center">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
+            <RadzenText Text="@errorMessage" Visible="@errorVisibility"
+                        Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+
+            <RadzenText Text="@successMessage" Visible="@successVisibility"
+                        Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email"></RadzenTextBox>
 
@@ -48,34 +55,92 @@
     private CreateUserRequest userRequest = new CreateUserRequest();
     private string password = "";
     private string repeatedPassword = "";
+    private string errorMessage = "";
+    private bool errorVisibility = false;
+    private string successMessage = "";
+    private bool successVisibility = false;
 
     async Task SignUp()
     {
         userRequest.Uid = "";
         userRequest.Role = "";
+        errorVisibility = false;
+        errorMessage = "";
+        successVisibility = false;
+
+        if (!Regex.IsMatch(userRequest.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase))
+        {
+            ShowError("Wrong email address");
+            return;
+        }
+        if (password.Length < 6)
+        {
+            ShowError("Password isn't long enough");
+            return;
+        }
+        if (password != repeatedPassword)
+        {
+            ShowError("Passwords don't match");
+            return;
+        }
+        if (!Regex.IsMatch(userRequest.PhoneNumber, @"^\d{9}$"))
+        {
+            ShowError("Wrong phone number");
+            return;
+        }
 
         try
         {
             var jsDefined = await JS.InvokeAsync<bool>("eval", "typeof window.firebaseAuth !== 'undefined'");
-            if (!jsDefined)
+            if (!jsDefined) throw new Exception("Firebase library not loaded");
+
+            string token = await JS.InvokeAsync<string>("firebaseAuth.register", userRequest.Email, password);
+            Console.WriteLine("Firebase ID Token obtained.");
+
+            string apiResultMessage = await Client.CreateUser(userRequest, token);
+
+            if (apiResultMessage.StartsWith("Success"))
             {
-                Console.WriteLine("firebaseAuth not loaded yet!");
-                return;
+                successMessage = apiResultMessage;
+                successVisibility = true;
+                ClearForm();
             }
-
-            var token = await JS.InvokeAsync<string>("firebaseAuth.register", userRequest.Email, password);
-            Console.WriteLine("Firebase ID Token: " + token);
-
-            await Client.CreateUser(userRequest, token);
-        }
-        catch (JSException jsEx)
-        {
-            Console.WriteLine("JS Error: " + jsEx.Message);
+            else
+            {
+                ShowError(apiResultMessage);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Other Error: " + ex.Message);
+            string rawError = ex.InnerException?.Message ?? ex.Message;
+            ShowError(ParseFirebaseError(rawError));
+            Console.WriteLine("Caught Error: " + rawError);
         }
+    }
+
+    private void ShowError(string msg)
+    {
+        errorMessage = msg;
+        errorVisibility = true;
+    }
+
+    private void ClearForm()
+    {
+        userRequest = new CreateUserRequest();
+        password = "";
+        repeatedPassword = "";
+    }
+
+    private string ParseFirebaseError(string errorCode)
+    {
+        if (errorCode.Contains("email-already-in-use"))
+            return "Email address already in use";
+        if (errorCode.Contains("weak-password"))
+            return "Password is not long enough";
+        if (errorCode.Contains("invalid-email"))
+            return "Wrong email address";
+
+        return $"Error: {errorCode}";
     }
 }
 

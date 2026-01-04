@@ -13,20 +13,25 @@ namespace RentalSystem.Client.Web.Http
             _client = client;
         }
 
-        public async Task CreateUser(CreateUserRequest user, string token)
+        public async Task<string> CreateUser(CreateUserRequest user, string token)
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await _client.PostAsJsonAsync("/api/Users", user);
 
-            //var body = await response.Content.ReadAsStringAsync();
-
             Console.WriteLine($"STATUS: {response.StatusCode}");
-            //Console.WriteLine(body);
 
             Console.WriteLine(await response.Content.ReadAsStringAsync());
 
-            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success: Account created successfully";
+            }
+
+            else
+            {
+                return "Error: Account wasn't created";
+            }
         }
     }
 }

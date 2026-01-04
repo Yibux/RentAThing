@@ -6,11 +6,10 @@ window.firebaseAuth = {
 
         try {
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-            const token = await userCredential.user.getIdToken();
-            return token;
+            return await userCredential.user.getIdToken();
         } catch (err) {
-            console.error("Firebase register error:", err);
-            throw err;
+            const code = err.code || "unknown_error";
+            throw code;
         }
     }
 };
