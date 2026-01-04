@@ -193,8 +193,8 @@
         if (string.IsNullOrEmpty(errorCode))
             return "An unknown error occurred.";
 
-        // Firebase zwraca b³êdy w formacie "auth/kod-bledu" lub jako tekst wyj¹tku
-        // U¿ywamy ToLower() i Contains, aby metoda by³a odporna na formatowanie
+        // Firebase zwraca bï¿½ï¿½dy w formacie "auth/kod-bledu" lub jako tekst wyjï¿½tku
+        // Uï¿½ywamy ToLower() i Contains, aby metoda byï¿½a odporna na formatowanie
         var code = errorCode.ToLower();
 
         if (code.Contains("email-already-in-use"))
@@ -224,11 +224,11 @@
         if (code.Contains("popup-closed-by-user"))
             return "The login window was closed before finishing.";
 
-        // B³êdy z Twojego API (backendu)
+        // Bï¿½ï¿½dy z Twojego API (backendu)
         if (code.Contains("conflict"))
             return "A user with this email already exists in our system.";
 
-        // Jeœli b³¹d nie pasuje do ¿adnego z powy¿szych, zwracamy go w czytelnej formie
+        // Jeï¿½li bï¿½ï¿½d nie pasuje do ï¿½adnego z powyï¿½szych, zwracamy go w czytelnej formie
         return $"Error: {errorCode}";
     }
 }

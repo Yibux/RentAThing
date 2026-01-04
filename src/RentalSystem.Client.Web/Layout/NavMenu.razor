@@ -1,13 +1,16 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<div class="top-row ps-3 navbar navbar-dark" style="background-color: rgba(45, 62, 80)">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">RentalSystem.Client.Web</a>
+        <b class="navbar-brand" href="">RentAThing</b>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu" style="border: 0px none #212529; background-color: rgb(45, 62, 80)">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -24,6 +27,9 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My rentals
             </NavLink>
         </div>
+        <div class="nav-item px-3" style="border: 0px none rgba(0,0,0,0); border-top: 1px solid rgba(0, 0, 0, 100); margin-left: 20px; margin-right: 20px">
+            <RadzenButton Text="Log out" Click="@(async () => await Task.Run(async () => await LogOut()))" ButtonType="ButtonType.Button" Style="margin-top: 20px; text-align: center; height: 29px; width: 100%; background-color: rgb(217,84,79); color: rgb(255,255,255); border: 0px outset #000000" />
+        </div>
     </nav>
 </div>
 
@@ -35,5 +41,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task LogOut(){
+        // usunac wszystkie dane uzytkownika
+        await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+        NavManager.NavigateTo("/signIn");
     }
 }
