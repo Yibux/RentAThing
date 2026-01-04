@@ -13,16 +13,28 @@
 
     <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
-            <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
-            
+
+            @if (signInVisibility)
+            {
+                <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+            }
+
+            @if (changePasswordVisibility)
+            {
+                <RadzenText Text="Change password" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+            }
+
+            @if (successVisibility)
+            {
+                <RadzenText Text="@successMessage"
+                            Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+            }
+
             @if (errorVisibility)
             {
                 <RadzenText Text="@errorMessage"
                             Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
             }
-
-            @*  <RadzenText Text="@errorMessage" Visible="@errorVisibility" 
-            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />*@
 
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="email" />
@@ -30,12 +42,42 @@
             <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
 
-            <RadzenButton Text="Sign in" Click="@SignIn" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+            @if (signInVisibility)
+            {
+                <RadzenButton Text="Sign in" Click="@SignIn" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+            }
 
-            <RadzenText Style="margin-top: 15px; font-size: 13px">
+            @if (changePasswordVisibility)
+            {
+                <RadzenText Text="New password" Style="margin: auto; width: 200px; text-align: left" />
+                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="newPassword" />
+
+                <RadzenText Text="Repeat new password" Style="margin: auto; width: 200px; text-align: left" />
+                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repeatedNewPassword" />
+
+                <RadzenButton Text="Change password" Click="@ChangePassword" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+            }
+
+            <RadzenText Style="margin-top: 15px; font-size: 13px; margin-bottom: 0px">
                 Don't have an account yet?
                 <a href="/signUp" style="color: rgba(45, 62, 80, 100)">Sign up!</a>
             </RadzenText>
+
+            @if (changePasswordVisibility)
+            {
+                <RadzenText Style="font-size: 13px; margin-bottom: 0px">
+                    Already have an account?
+                    <a @onclick="ShowSignIn" style="color: rgba(45, 62, 80, 100); cursor: pointer; text-decoration: underline; cursor: pointer">Log in!</a>
+                </RadzenText>
+            }
+
+            @if (signInVisibility)
+            {
+                <RadzenText Style="font-size: 13px; margin-bottom: 0px">
+                    Forgot your password?
+                    <a @onclick="ShowChangePassword" style="color: rgba(45, 62, 80, 100); cursor: pointer; text-decoration: underline; cursor: pointer">Click here</a>
+                </RadzenText>
+            }
         </RadzenColumn>
     </RadzenColumn>
 
@@ -52,11 +94,17 @@
 
     private string errorMessage = "";
     private bool errorVisibility = false;
+    private string successMessage = "";
+    private bool successVisibility = false;
+
     private string email = "";
     private string password = "";
+    private bool signInVisibility = true;
 
-    // var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-    // Console.WriteLine("Storage token " + storageToken);
+    private bool changePasswordVisibility = false;
+    private string newPassword = "";
+    private string repeatedNewPassword = "";
+
 
     async Task SignIn()
     {
@@ -69,42 +117,21 @@
 
         if (result.Success)
         {
-            // Sukces - zapisujemy token i nawigujemy
             await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", result.Token);
             Console.WriteLine("Token obtained and stored: " + result.Token);
+
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            Console.WriteLine("Storage token " + storageToken);
+
             NavManager.NavigateTo("/");
         }
         else
         {
-            // BÅ‚Ä…d - obsÅ‚ugujemy go bezpiecznie bez zacinania strony
             Console.WriteLine("Login Error: " + result.Error);
             ShowError(ParseLoginError(result.Error));
         }
 
         StateHasChanged();
-
-        // try
-        // {
-        //     string token = await JS.InvokeAsync<string>("firebaseAuth.login", email, password);
-        //     await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", token);
-
-        //     Console.WriteLine("Token " + token);
-
-        //     // var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-        //     // Console.WriteLine("Storage token " + storageToken);
-
-        //     NavManager.NavigateTo("/");
-        // }
-        // catch (Exception ex)
-        // {
-        //     string rawError = ex.InnerException?.Message ?? ex.Message;
-        //     // ShowError(ParseFirebaseError(rawError));
-        //     Console.WriteLine("Caught Error: " + rawError);
-        //     ShowError(ParseLoginError(rawError));
-        //     StateHasChanged();
-        // }
-
-        // StateHasChanged();
     }
 
     private void ShowError(string msg)
@@ -116,10 +143,6 @@
 
     private string ParseLoginError(string errorCode)
     {
-        // TYMCZASOWO: Zwrï¿½ï¿½ surowy bï¿½ï¿½d, ï¿½eby zobaczyï¿½ co tam siedzi
-        // return errorCode;
-
-        // Firebase czï¿½sto zwraca teraz "auth/invalid-credential" zamiast "wrong-password"
         if (errorCode.Contains("user-not-found") ||
             errorCode.Contains("wrong-password") ||
             errorCode.Contains("invalid-credential") ||
@@ -135,7 +158,77 @@
         if (errorCode.Contains("too-many-requests"))
             return "Too many tries, try later";
 
-        // Jeï¿½li nic nie pasuje, pokaï¿½ chociaï¿½ poczï¿½tek bï¿½ï¿½du
         return "Sign in failed: " + (errorCode.Length > 50 ? errorCode.Substring(0, 50) : errorCode);
+    }
+
+
+    async Task ShowChangePassword()
+    {
+        signInVisibility = false;
+        changePasswordVisibility = true;
+    }
+
+    async Task ShowSignIn()
+    {
+        signInVisibility = true;
+        changePasswordVisibility = false;
+    }
+
+    async Task ChangePassword()
+    {
+        var result = await JS.InvokeAsync<FirebaseAuthResponse>("firebaseAuth.passwordReset", email);
+        if (result.Success)
+        {
+            successMessage = "Password changed successfully";
+            successVisibility = true;
+        }
+        else
+        {
+            ShowError(ParseFirebaseError(result.Error));
+        }
+    }
+
+    private string ParseFirebaseError(string errorCode)
+    {
+        if (string.IsNullOrEmpty(errorCode))
+            return "An unknown error occurred.";
+
+        // Firebase zwraca b³êdy w formacie "auth/kod-bledu" lub jako tekst wyj¹tku
+        // U¿ywamy ToLower() i Contains, aby metoda by³a odporna na formatowanie
+        var code = errorCode.ToLower();
+
+        if (code.Contains("email-already-in-use"))
+            return "This email address is already registered.";
+
+        if (code.Contains("weak-password"))
+            return "The password is too weak. It must be at least 6 characters.";
+
+        if (code.Contains("invalid-email"))
+            return "The email address is not valid.";
+
+        if (code.Contains("user-not-found") || code.Contains("wrong-password") || code.Contains("invalid-credential"))
+            return "Invalid email or password.";
+
+        if (code.Contains("user-disabled"))
+            return "This account has been disabled.";
+
+        if (code.Contains("too-many-requests"))
+            return "Too many failed attempts. Please try again later.";
+
+        if (code.Contains("network-request-failed"))
+            return "Network error. Please check your internet connection.";
+
+        if (code.Contains("requires-recent-login"))
+            return "Please log in again before changing your password.";
+
+        if (code.Contains("popup-closed-by-user"))
+            return "The login window was closed before finishing.";
+
+        // B³êdy z Twojego API (backendu)
+        if (code.Contains("conflict"))
+            return "A user with this email already exists in our system.";
+
+        // Jeœli b³¹d nie pasuje do ¿adnego z powy¿szych, zwracamy go w czytelnej formie
+        return $"Error: {errorCode}";
     }
 }

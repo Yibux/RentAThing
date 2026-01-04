@@ -23,17 +23,11 @@
                             Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
             }
 
-            @* <RadzenText Text="@errorMessage" Visible="@errorVisibility"
-                        Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" /> *@
-
-
             @if (successVisibility)
             {
                 <RadzenText Text="@successMessage"
                             Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
             }
-            @* <RadzenText Text="@successMessage" Visible="@successVisibility"
-                        Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" /> *@
 
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email" />
@@ -54,13 +48,11 @@
             <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.PhoneNumber" />
 
-            @* <RadzenButton Text="Sign up" Click="@SignUp" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" /> *@
-
             <RadzenButton Text="Sign up"
                           Click="@(async () => await Task.Run(async () => await SignUp()))"
                           Disabled="@(string.IsNullOrEmpty(userRequest.Email))"
                           IsBusy="@false"
-                          ButtonType="ButtonType.Button" Style="width: 200px; margin: auto; margin-top: 20px" />
+                          ButtonType="ButtonType.Button" Style="width: 150px; margin: auto; margin-top: 20px" />
 
             <RadzenText Style="margin-top: 15px; font-size: 13px">
                 Already have an account?
@@ -133,7 +125,6 @@
 
         if (!result.Success)
         {
-            // Obsługa błędu bez "wybuchu" aplikacji
             Console.WriteLine($"Firebase Error Code: {result.Error}");
             ShowError(ParseFirebaseError(result.Error));
             return;
@@ -149,6 +140,7 @@
                 successMessage = apiResultMessage;
                 successVisibility = true;
                 ClearForm();
+                Console.WriteLine(token);
             }
             else
             {
@@ -161,36 +153,6 @@
         }
 
         StateHasChanged();
-
-        // try
-        // {
-        //     var jsDefined = await JS.InvokeAsync<bool>("eval", "typeof window.firebaseAuth !== 'undefined'");
-        //     if (!jsDefined) throw new Exception("Firebase library not loaded");
-
-        //     string token = await JS.InvokeAsync<string>("firebaseAuth.register", userRequest.Email, password);
-        //     Console.WriteLine("Firebase ID Token obtained.");
-
-        //     string apiResultMessage = await Client.CreateUser(userRequest, token);
-
-        //     if (apiResultMessage.StartsWith("Success"))
-        //     {
-        //         successMessage = apiResultMessage;
-        //         successVisibility = true;
-        //         ClearForm();
-        //         StateHasChanged();
-        //     }
-        //     else
-        //     {
-        //         ShowError(apiResultMessage);
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     string rawError = ex.InnerException?.Message ?? ex.Message;
-        //     ShowError(ParseFirebaseError(rawError));
-        //     Console.WriteLine("Caught Error: " + rawError);
-        //     StateHasChanged();
-        // }
     }
 
     private void ShowError(string msg)
@@ -207,21 +169,8 @@
         repeatedPassword = "";
     }
 
-    // private string ParseFirebaseError(string errorCode)
-    // {
-    //     if (errorCode.Contains("email-already-in-use"))
-    //         return "Email address already in use";
-    //     if (errorCode.Contains("weak-password"))
-    //         return "Password is not long enough";
-    //     if (errorCode.Contains("invalid-email"))
-    //         return "Wrong email address";
-
-    //     return $"Error: {errorCode}";
-    // }
-
     private string ParseFirebaseError(string errorCode)
     {
-        // Logika szukania fragment�w wewn�trz ca�ego stringa wyj�tku
         if (errorCode.Contains("email-already-in-use"))
             return "This email is already registered.";
 
@@ -234,11 +183,9 @@
         if (errorCode.Contains("network-request-failed"))
             return "Network error. Check your connection.";
 
-        // Je�li b��d pochodzi z Twojego API (backendu)
         if (errorCode.Contains("Conflict"))
             return "User with this email already exists in our database.";
 
         return $"Registration failed: {errorCode}";
     }
 }
-
