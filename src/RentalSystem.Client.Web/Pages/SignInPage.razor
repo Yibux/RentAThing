@@ -1,24 +1,141 @@
 @page "/signIn"
 @layout EmptyLayout
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
 
 
-<PageTitle>Zaloguj się</PageTitle>
+<PageTitle>Sign in</PageTitle>
 
 <div style="width: 100%; height: 100vh; display: flex; padding: 0px">
-        <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 100); display: flex; font-size: 30px; padding: 0px">
-            <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
-        </RadzenColumn>
+    <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 100); display: flex; font-size: 30px; padding: 0px">
+        <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
+    </RadzenColumn>
 
-        <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
-            <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
-                <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
-                <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px"></RadzenTextBox>
+    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
+        <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
+            <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+            
+            @if (errorVisibility)
+            {
+                <RadzenText Text="@errorMessage"
+                            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+            }
 
-                <RadzenText Text="Hasło" Style="margin: auto; width: 200px; text-align: left" />
-                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px"></RadzenPassword>
-                
-                <RadzenButton Text="Zaloguj się" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center"></RadzenButton>
-            </RadzenColumn>
+            @*  <RadzenText Text="@errorMessage" Visible="@errorVisibility" 
+            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />*@
+
+            <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="email" />
+
+            <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
+
+            <RadzenButton Text="Sign in" Click="@SignIn" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+
+            <RadzenText Style="margin-top: 15px; font-size: 13px">
+                Don't have an account yet?
+                <a href="/signUp" style="color: rgba(45, 62, 80, 100)">Sign up!</a>
+            </RadzenText>
         </RadzenColumn>
-   
+    </RadzenColumn>
+
 </div>
+
+
+@code {
+    public class FirebaseAuthResponse
+    {
+        public bool Success { get; set; }
+        public string Token { get; set; }
+        public string Error { get; set; }
+    }
+
+    private string errorMessage = "";
+    private bool errorVisibility = false;
+    private string email = "";
+    private string password = "";
+
+    // var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+    // Console.WriteLine("Storage token " + storageToken);
+
+    async Task SignIn()
+    {
+        errorMessage = "";
+        errorVisibility = false;
+
+        await Task.Yield();
+
+        var result = await JS.InvokeAsync<FirebaseAuthResponse>("firebaseAuth.login", email, password);
+
+        if (result.Success)
+        {
+            // Sukces - zapisujemy token i nawigujemy
+            await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", result.Token);
+            Console.WriteLine("Token obtained and stored: " + result.Token);
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            // Błąd - obsługujemy go bezpiecznie bez zacinania strony
+            Console.WriteLine("Login Error: " + result.Error);
+            ShowError(ParseLoginError(result.Error));
+        }
+
+        StateHasChanged();
+
+        // try
+        // {
+        //     string token = await JS.InvokeAsync<string>("firebaseAuth.login", email, password);
+        //     await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", token);
+
+        //     Console.WriteLine("Token " + token);
+
+        //     // var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        //     // Console.WriteLine("Storage token " + storageToken);
+
+        //     NavManager.NavigateTo("/");
+        // }
+        // catch (Exception ex)
+        // {
+        //     string rawError = ex.InnerException?.Message ?? ex.Message;
+        //     // ShowError(ParseFirebaseError(rawError));
+        //     Console.WriteLine("Caught Error: " + rawError);
+        //     ShowError(ParseLoginError(rawError));
+        //     StateHasChanged();
+        // }
+
+        // StateHasChanged();
+    }
+
+    private void ShowError(string msg)
+    {
+        errorMessage = msg;
+        errorVisibility = true;
+        StateHasChanged();
+    }
+
+    private string ParseLoginError(string errorCode)
+    {
+        // TYMCZASOWO: Zwr�� surowy b��d, �eby zobaczy� co tam siedzi
+        // return errorCode;
+
+        // Firebase cz�sto zwraca teraz "auth/invalid-credential" zamiast "wrong-password"
+        if (errorCode.Contains("user-not-found") ||
+            errorCode.Contains("wrong-password") ||
+            errorCode.Contains("invalid-credential") ||
+            errorCode.Contains("invalid-email") ||
+            errorCode.Contains("INVALID_LOGIN_CREDENTIALS"))
+        {
+            return "Wrong email or password";
+        }
+
+        if (errorCode.Contains("user-disabled"))
+            return "This account was banned";
+
+        if (errorCode.Contains("too-many-requests"))
+            return "Too many tries, try later";
+
+        // Je�li nic nie pasuje, poka� chocia� pocz�tek b��du
+        return "Sign in failed: " + (errorCode.Length > 50 ? errorCode.Substring(0, 50) : errorCode);
+    }
+}
