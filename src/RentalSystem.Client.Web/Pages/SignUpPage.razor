@@ -1,5 +1,7 @@
 @page "/signUp"
 @using RentalSystem.Shared.DTOs
+@using RentalSystem.Client.Web.Http
+@inject UsersApiClient Client
 @layout EmptyLayout
 @inject IJSRuntime JS
 
@@ -15,43 +17,43 @@
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email"></RadzenTextBox>
 
-            <RadzenText Text="Imię" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="Name" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Name"></RadzenTextBox>
 
-            <RadzenText Text="Nazwisko" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="Surname" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Surname"></RadzenTextBox>
 
-            <RadzenText Text="Hasło" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password"></RadzenPassword>
+            <RadzenText Text="Password needs to be at least 6 characters long." Style="font-size: 10px; width: 200px; margin: auto; text-align: left" />
 
-            <RadzenText Text="Powtórz hasło" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repetedPassword"></RadzenPassword>
+            <RadzenText Text="Repeat password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repeatedPassword"></RadzenPassword>
 
-            <RadzenText Text="Numer telefonu" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.PhoneNumber"></RadzenTextBox>
 
-            <RadzenButton Text="Zarejestruj się" Click="@SignUp" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center"></RadzenButton>
+            <RadzenButton Text="Sign up" Click="@SignUp" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center"></RadzenButton>
+
+            <RadzenText Style="margin-top: 15px; font-size: 13px">
+                Already have an account?
+                <a href="/signIn" style="color: rgba(45, 62, 80, 100)">Sign in!</a>
+            </RadzenText>
         </RadzenColumn>
     </RadzenColumn>
 </div>
 
 
-
-
-@* <RadzenTemplateForm Data="@model" Submit="@Register">
-    <RadzenTextBox @bind-Value="model.Email" Placeholder="Email" />
-    <RadzenPassword @bind-Value="model.Password" Placeholder="Password" />
-    <RadzenButton Text="Register" ButtonType="Submit" />
-</RadzenTemplateForm> *@
-
-
 @code {
-    private CreateUserRequest userRequest = new();
-    private string password;
-    private string repetedPassword;
+    private CreateUserRequest userRequest = new CreateUserRequest();
+    private string password = "";
+    private string repeatedPassword = "";
 
     async Task SignUp()
     {
+        userRequest.Uid = "";
+        userRequest.Role = "";
+
         try
         {
             var jsDefined = await JS.InvokeAsync<bool>("eval", "typeof window.firebaseAuth !== 'undefined'");
@@ -63,6 +65,8 @@
 
             var token = await JS.InvokeAsync<string>("firebaseAuth.register", userRequest.Email, password);
             Console.WriteLine("Firebase ID Token: " + token);
+
+            await Client.CreateUser(userRequest, token);
         }
         catch (JSException jsEx)
         {
