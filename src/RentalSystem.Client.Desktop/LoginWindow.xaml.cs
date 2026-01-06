@@ -12,9 +12,6 @@ namespace RentalSystem.Client.Desktop
 {
     public partial class LoginWindow : Window
     {
-        private static readonly string AuthDomain = AppConstants.FIREBASE_AUTH_DOMAIN;
-        private static readonly string BackendUrl = $"{AppConstants.BACKEND_HOST}:{AppConstants.BACKEND_GRPC_PORT}";
-        private static readonly string FirebaseApiKey = AppConstants.FIREBASE_API_KEY;
 
         public LoginWindow()
         {
@@ -33,8 +30,8 @@ namespace RentalSystem.Client.Desktop
 
                 var config = new FirebaseAuthConfig
                 {
-                    ApiKey = FirebaseApiKey,
-                    AuthDomain = AuthDomain,
+                    ApiKey = AppConstants.FIREBASE_API_KEY,
+                    AuthDomain = AppConstants.FIREBASE_AUTH_DOMAIN,
                     Providers = new FirebaseAuthProvider[]
                     {
                         new EmailProvider()
@@ -46,7 +43,7 @@ namespace RentalSystem.Client.Desktop
                 var userCredential = await authClient.SignInWithEmailAndPasswordAsync(email, password);
 
                 string token = await userCredential.User.GetIdTokenAsync();
-                using var channel = GrpcChannel.ForAddress(BackendUrl, new GrpcChannelOptions
+                using var channel = GrpcChannel.ForAddress(AppConstants.BACKEND_GRPC_URL, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.Insecure
                 });

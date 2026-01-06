@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "RentalSystem.Shared.Protos";
+
+package items;
+import "Protos/common.proto";
+
+service ItemsGrpc {
+  rpc GetAllItems (common.EmptyRequest) returns (ItemsListResponse);
+  rpc ModerateItem (ModerateItemRequest) returns (common.ActionResponse);
+}
+
+message ModerateItemRequest {
+  string item_id = 1;
+  string status = 2;
+  string rejection_reason = 3;
+}
+
+message ItemsListResponse {
+  repeated ItemGrpcModel items = 1;
+}
+
+message ItemGrpcModel {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string category = 4;
+  double price_per_day = 5;
+  string currency = 6;
+  string status = 7;
+  string owner_id = 8;
+  repeated string photos = 9;
+  GrpcLocation location = 10;
+}
+
+
+message GrpcLocation {
+  string city = 1;
+  string address_label = 2;
+  string country = 3;
+  string street = 4;
+  string house_number = 5;
+  string postal_code = 6;
+  double latitude = 7;
+  double longitude = 8;
+}
