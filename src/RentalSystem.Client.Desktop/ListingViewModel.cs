@@ -1,15 +1,17 @@
-﻿using System;
+﻿using RentalSystem.Shared.Models;
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using RentalSystem.Shared.Models;
 
 namespace RentalSystem.Client.Desktop
 {
-    public class ListingViewModel
+    public class ListingViewModel : INotifyPropertyChanged
     {
-        public Item Model { get; set; }
+        public Item Model { get; private set; }
 
         public ListingViewModel(Item item)
         {
@@ -21,8 +23,9 @@ namespace RentalSystem.Client.Desktop
         public string Title => Model.Title;
         public string Description => Model.Description;
         public string Category => Model.Category;
-        public decimal PricePerDay => Model.PricePerDay;
-        public string Currency => Model.Currency;
+
+        public string PriceDisplay => $"{Model.PricePerDay} {Model.Currency} / dzień";
+
         public string Status => Model.Status;
         public ItemLocation Location => Model.Location;
 
@@ -30,13 +33,9 @@ namespace RentalSystem.Client.Desktop
         {
             get
             {
-                switch (Model.Status)
-                {
-                    case "APPROVED": return Brushes.Green;
-                    case "REJECTED": return Brushes.Red;
-                    case "PENDING":
-                    default: return Brushes.Orange;
-                }
+                if (Model.Status == "APPROVED") return Brushes.Green;
+                if (Model.Status == "REJECTED") return Brushes.Red;
+                return Brushes.Orange;
             }
         }
 
@@ -52,32 +51,44 @@ namespace RentalSystem.Client.Desktop
                 {
                     if (string.IsNullOrEmpty(photoStr)) continue;
 
+                    BitmapImage image = new BitmapImage();
+
                     if (photoStr.StartsWith("data:image"))
                     {
-                        var base64 = photoStr.Split(',')[1];
+                        var base64 = photoStr.Contains(",") ? photoStr.Split(',')[1] : photoStr;
                         var bytes = Convert.FromBase64String(base64);
 
                         using (var stream = new MemoryStream(bytes))
                         {
-                            var image = new BitmapImage();
                             image.BeginInit();
                             image.CacheOption = BitmapCacheOption.OnLoad;
                             image.StreamSource = stream;
                             image.EndInit();
-                            image.Freeze();
-                            Photos.Add(image);
                         }
                     }
                     else
                     {
-                        var image = new BitmapImage(new Uri(photoStr));
-                        Photos.Add(image);
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.UriSource = new Uri(photoStr);
+                        image.EndInit();
                     }
+
+                    image.Freeze();
+                    Photos.Add(image);
                 }
-                catch
+                catch (Exception)
                 {
+                    
                 }
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

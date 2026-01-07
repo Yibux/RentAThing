@@ -8,7 +8,7 @@
 
     <Grid Background="#F5F5F5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="400"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -23,23 +23,41 @@
                            VerticalAlignment="Center" Margin="20,0" Foreground="#333"/>
 
                 <ListBox x:Name="lbItems" Grid.Row="1" BorderThickness="0" 
-                         SelectionChanged="LbItems_SelectionChanged"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                         ItemsSource="{Binding Listings}"
+                         SelectedItem="{Binding SelectedListing, Mode=TwoWay}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         HorizontalContentAlignment="Stretch">
+
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Border Padding="10" BorderBrush="#EEE" BorderThickness="0,0,0,1">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
-                                    <TextBlock Text="{Binding Category}" Foreground="Gray" FontSize="12"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                        <TextBlock Text="{Binding PricePerDay}" FontWeight="SemiBold" Foreground="#2D3E50"/>
-                                        <TextBlock Text=" PLN/dzień" Foreground="#2D3E50"/>
-                                    </StackPanel>
-                                    <Border Background="{Binding StatusColor}" CornerRadius="4" 
-                                            HorizontalAlignment="Left" Padding="5,2" Margin="0,5,0,0">
-                                        <TextBlock Text="{Binding Status}" Foreground="White" FontSize="10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="60"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" CornerRadius="4" Margin="0,0,10,0" BorderBrush="#EEE" BorderThickness="1">
+                                        <Image Source="{Binding Photos[0]}" Stretch="UniformToFill" Height="50" Width="50"/>
                                     </Border>
-                                </StackPanel>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Category}" Foreground="Gray" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding PriceDisplay}" FontWeight="SemiBold" Foreground="#2D3E50" HorizontalAlignment="Right"/>
+
+                                        <TextBlock Text="{Binding Status}" 
+                                                   Foreground="{Binding StatusColor}" 
+                                                   FontSize="11" 
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Right"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -48,12 +66,14 @@
         </Border>
 
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="spDetails" Margin="30" Visibility="Collapsed">
-                <TextBlock Text="{Binding SelectedItem.Title}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" Foreground="#333"/>
-                <TextBlock Text="{Binding SelectedItem.Id}" Foreground="#AAA" Margin="0,0,0,20"/>
+            <StackPanel x:Name="spDetails" Margin="30" Visibility="{Binding DetailsVisibility}">
+
+                <TextBlock Text="{Binding SelectedListing.Title}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" Foreground="#333"/>
+                <TextBlock Text="{Binding SelectedListing.Id}" Foreground="#AAA" Margin="0,0,0,20"/>
 
                 <TextBlock Text="ZDJĘCIA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
-                <ItemsControl ItemsSource="{Binding SelectedItem.Photos}">
+
+                <ItemsControl ItemsSource="{Binding SelectedListing.Photos}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"/>
@@ -61,7 +81,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="#DDD" BorderThickness="1" Margin="0,0,10,10">
+                            <Border BorderBrush="#DDD" BorderThickness="1" Margin="0,0,10,10" CornerRadius="4" ClipToBounds="True">
                                 <Image Source="{Binding}" Height="150" Stretch="Uniform"/>
                             </Border>
                         </DataTemplate>
@@ -70,7 +90,7 @@
 
                 <TextBlock Text="OPIS" FontWeight="Bold" Foreground="#888" Margin="0,20,0,5"/>
                 <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
-                    <TextBlock Text="{Binding SelectedItem.Description}" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
+                    <TextBlock Text="{Binding SelectedListing.Description}" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
                 </Border>
 
                 <Grid Margin="0,20,0,0">
@@ -82,12 +102,7 @@
                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
                         <TextBlock Text="CENA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
                         <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding SelectedItem.PricePerDay}" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock Text=" "/>
-                                <TextBlock Text="{Binding SelectedItem.Currency}" FontSize="18"/>
-                                <TextBlock Text=" / dzień" VerticalAlignment="Bottom" Margin="5,0,0,2"/>
-                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedListing.PriceDisplay}" FontSize="18" FontWeight="Bold"/>
                         </Border>
                     </StackPanel>
 
@@ -95,8 +110,8 @@
                         <TextBlock Text="LOKALIZACJA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
                         <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="{Binding SelectedItem.Location.City}" FontWeight="Bold"/>
-                                <TextBlock Text="{Binding SelectedItem.Location.AddressLabel}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedListing.Location.City}" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding SelectedListing.Location.AddressLabel}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
