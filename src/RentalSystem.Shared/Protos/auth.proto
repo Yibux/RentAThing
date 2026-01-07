@@ -3,14 +3,13 @@ syntax = "proto3";
 option csharp_namespace = "RentalSystem.Shared.Protos";
 
 package auth;
+import "Protos/common.proto";
 
 service AuthService {
-  rpc GetMyProfile (EmptyRequest) returns (UserProfileResponse);
-  rpc GetAllUsers (EmptyRequest) returns (UsersListResponse);
-  rpc SetUserBanStatus (BanUserRequest) returns (ActionResponse);
+  rpc GetMyProfile (common.EmptyRequest) returns (UserProfileResponse);
+  rpc GetAllUsers (common.EmptyRequest) returns (UsersListResponse);
+  rpc SetUserBanStatus (BanUserRequest) returns (common.ActionResponse);
 }
-
-message EmptyRequest {}
 
 message UserProfileResponse {
   string id = 1;
@@ -29,9 +28,4 @@ message UsersListResponse {
 message BanUserRequest {
   string user_id = 1;
   bool is_banned = 2;
-}
-
-message ActionResponse {
-  bool success = 1;
-  string message = 2;
 }
