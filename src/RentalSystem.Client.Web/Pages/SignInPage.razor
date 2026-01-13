@@ -19,7 +19,7 @@
                 <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
             }
 
-            @if (changePasswordVisibility)
+            @if (!signInVisibility)
             {
                 <RadzenText Text="Change password" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
             }
@@ -39,22 +39,17 @@
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="email" />
 
-            <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
 
             @if (signInVisibility)
             {
+                <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
+                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
+
                 <RadzenButton Text="Sign in" Click="@SignIn" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
             }
 
-            @if (changePasswordVisibility)
+            @if (!signInVisibility)
             {
-                <RadzenText Text="New password" Style="margin: auto; width: 200px; text-align: left" />
-                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="newPassword" />
-
-                <RadzenText Text="Repeat new password" Style="margin: auto; width: 200px; text-align: left" />
-                <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repeatedNewPassword" />
-
                 <RadzenButton Text="Change password" Click="@ChangePassword" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
             }
 
@@ -63,7 +58,7 @@
                 <a href="/signUp" style="color: rgba(45, 62, 80, 100)">Sign up!</a>
             </RadzenText>
 
-            @if (changePasswordVisibility)
+            @if (!signInVisibility)
             {
                 <RadzenText Style="font-size: 13px; margin-bottom: 0px">
                     Already have an account?
@@ -101,9 +96,9 @@
     private string password = "";
     private bool signInVisibility = true;
 
-    private bool changePasswordVisibility = false;
-    private string newPassword = "";
-    private string repeatedNewPassword = "";
+    // private bool changePasswordVisibility = false;
+    // private string newPassword = "";
+    // private string repeatedNewPassword = "";
 
 
     async Task SignIn()
@@ -165,13 +160,15 @@
     async Task ShowChangePassword()
     {
         signInVisibility = false;
-        changePasswordVisibility = true;
+        errorVisibility = false;
+        // changePasswordVisibility = true;
     }
 
     async Task ShowSignIn()
     {
         signInVisibility = true;
-        changePasswordVisibility = false;
+        errorVisibility = false;
+        // changePasswordVisibility = false;
     }
 
     async Task ChangePassword()
@@ -193,8 +190,6 @@
         if (string.IsNullOrEmpty(errorCode))
             return "An unknown error occurred.";
 
-        // Firebase zwraca b��dy w formacie "auth/kod-bledu" lub jako tekst wyj�tku
-        // U�ywamy ToLower() i Contains, aby metoda by�a odporna na formatowanie
         var code = errorCode.ToLower();
 
         if (code.Contains("email-already-in-use"))
@@ -224,11 +219,9 @@
         if (code.Contains("popup-closed-by-user"))
             return "The login window was closed before finishing.";
 
-        // B��dy z Twojego API (backendu)
         if (code.Contains("conflict"))
             return "A user with this email already exists in our system.";
 
-        // Je�li b��d nie pasuje do �adnego z powy�szych, zwracamy go w czytelnej formie
         return $"Error: {errorCode}";
     }
 }
