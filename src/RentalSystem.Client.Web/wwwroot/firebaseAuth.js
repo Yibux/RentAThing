@@ -35,5 +35,22 @@ window.firebaseAuth = {
         } catch (err) {
             return { success: false, error: err.code || "unknown_error" };
         }
+    },
+
+    deleteFirebaseAccount: async function () {
+        try {
+            const user = firebase.auth().currentUser;
+
+            if (!user) {
+                console.warn("Delete account: No user found in Firebase state.");
+                return "No user logged in";
+            }
+
+            await user.delete();
+            return "Success";
+        } catch (error) {
+            console.error("Firebase Delete Error:", error);
+            return error.code || error.message;
+        }
     }
 };

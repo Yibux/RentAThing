@@ -1,0 +1,214 @@
+@layout MainLayout
+@page "/myProfile"
+@using RentalSystem.Client.Web.Http
+@using RentalSystem.Shared.DTOs
+@using RentalSystem.Shared.Models
+@using System.Text.RegularExpressions
+@inject DialogService DialogService
+@inject IJSRuntime JS
+@inject UsersApiClient Client
+@inject NavigationManager NavManager
+
+
+<PageTitle>My profile</PageTitle>
+
+<RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
+
+    @if (user == null || isLoaded == false)
+    {
+        <RadzenProgressBar ProgressValue="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        @if (errorVisibility)
+        {
+            <RadzenText Text="@message"
+                        Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+        }
+
+        @if (successVisibility)
+        {
+            <RadzenText Text="@message"
+                        Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+        }
+
+        <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
+        <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Email" Disabled="true" />
+
+        <RadzenText Text="Name" Style="margin: auto; width: 200px; text-align: left" />
+        <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Name" Disabled="@nonEditMode" />
+
+        <RadzenText Text="Surname" Style="margin: auto; width: 200px; text-align: left" />
+        <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Surname" Disabled="@nonEditMode" />
+
+        <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
+        <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.PhoneNumber" Disabled="@nonEditMode" />
+
+        <RadzenText Text="Average rating" Style="margin: auto; width: 200px; text-align: left" />
+        <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="averageRating" Disabled="true" />
+
+        @if (nonEditMode)
+        {
+            <RadzenButton Text="Edit" Click="@editMode" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+        }
+
+        @if (!nonEditMode)
+        {
+            <RadzenButton Text="Save" Click="@editUserData" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+        }
+
+        <RadzenButton Text="Delete account" Click="@deleteUser" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center; background-color: rgb(255,0,0);" />
+    }
+</RadzenColumn>
+
+
+@code {
+    private UserProfile user = new UserProfile();
+    private bool isLoaded = false;
+    private string averageRating = "Average rating: ";
+    private bool nonEditMode = true;
+
+    private string message = "";
+    private bool errorVisibility = false;
+    private bool successVisibility = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserData();
+            isLoaded = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadUserData()
+    {
+        try
+        {
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(storageToken)) return;
+
+            var response = await Client.GetUserProfile(storageToken);
+
+            if (response != null)
+            {
+                user = response;
+                averageRating = user.AverageRating.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Krytyczny b³¹d ³adowania danych: {ex.Message}");
+        }
+    }
+
+    private void editMode()
+    {
+        nonEditMode = nonEditMode ? false : true;
+        successVisibility = false;
+        errorVisibility = false;
+        message = "";
+    }
+
+    private async Task editUserData()
+    {
+        successVisibility = false;
+        errorVisibility = false;
+
+        if (!Regex.IsMatch(user.PhoneNumber, @"^\d{9}$"))
+        {
+            message = "Wrong phone number";
+            errorVisibility = true;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Name) && !string.IsNullOrWhiteSpace(user.PhoneNumber) && !string.IsNullOrWhiteSpace(user.Surname))
+        {
+            UpdateUserRequest userDto = new UpdateUserRequest
+            {
+                Name = user.Name,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Surname = user.Surname
+            };
+
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var response = await Client.UpdateUser(userDto, storageToken, user.Id);
+
+            message = response;
+
+            if (response.StartsWith("Success"))
+            {
+                successVisibility = true;
+                errorVisibility = false;
+                nonEditMode = true;
+                await LoadUserData();
+                StateHasChanged();
+            }
+
+            else
+            {
+                successVisibility = false;
+                errorVisibility = true;
+            }
+        }
+
+        else
+        {
+            message = "All fields must be filled";
+            errorVisibility = true;
+            return;
+        }
+    }
+
+    private async Task deleteUser()
+    {
+        successVisibility = false;
+        errorVisibility = false;
+
+        var result = await DialogService.OpenAsync("Simple Dialog", ds =>
+        @<RadzenStack Gap="1.5rem">
+    <p>Are you sure, that you want to remove your account?</p>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenButton Text="Yes" Click="() => ds.Close(true)" Style="width: 80px; background-color: rgb(255,0,0);" />
+            <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenStack>
+        );
+
+        if (result)
+        {
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var response = await Client.DeleteUserProfile(storageToken, user.Id);
+
+            message = response;
+
+            if (response.StartsWith("Success"))
+            {
+                var responseFirebase = await JS.InvokeAsync<string>("firebaseAuth.deleteFirebaseAccount");
+
+                if (responseFirebase == "Success")
+                {
+                    successVisibility = false;
+                    errorVisibility = false;
+                    await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                    NavManager.NavigateTo("/signIn");
+                }
+
+                else if (responseFirebase.Contains("requires-recent-login"))
+                {
+                    await DialogService.Alert("For security reasons, you must log in again before deleting your account.");
+                }
+            }
+        }
+
+        else
+        {
+            successVisibility = false;
+            errorVisibility = true;
+        }
+    }
+}

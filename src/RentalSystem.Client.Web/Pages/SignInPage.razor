@@ -16,7 +16,7 @@
 
             @if (signInVisibility)
             {
-                <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+                <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 40px; margin-bottom: 20px" />
             }
 
             @if (!signInVisibility)
@@ -85,6 +85,13 @@
         public bool Success { get; set; }
         public string Token { get; set; }
         public string Error { get; set; }
+
+        public FirebaseAuthResponse(bool success, string token, string error)
+        {
+            Token = token;
+            Success = success;
+            Error = error;
+        }
     }
 
     private string errorMessage = "";
@@ -95,10 +102,6 @@
     private string email = "";
     private string password = "";
     private bool signInVisibility = true;
-
-    // private bool changePasswordVisibility = false;
-    // private string newPassword = "";
-    // private string repeatedNewPassword = "";
 
 
     async Task SignIn()
@@ -161,14 +164,12 @@
     {
         signInVisibility = false;
         errorVisibility = false;
-        // changePasswordVisibility = true;
     }
 
     async Task ShowSignIn()
     {
         signInVisibility = true;
         errorVisibility = false;
-        // changePasswordVisibility = false;
     }
 
     async Task ChangePassword()

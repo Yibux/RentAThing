@@ -15,7 +15,7 @@
 
     <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px; visibility: visible; text-align: center">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
-            <RadzenText Text="Sign up" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+            <RadzenText Text="Sign up" Style="margin: auto; width: 200px; text-align: left; font-size: 40px; margin-bottom: 20px" />
 
             @if (errorVisibility)
             {
@@ -69,6 +69,13 @@
         public bool Success { get; set; }
         public string Token { get; set; }
         public string Error { get; set; }
+
+        public FirebaseAuthResponse(bool success, string token, string error)
+        {
+            Token = token;
+            Success = success;
+            Error = error;
+        }
     }
 
     private CreateUserRequest userRequest = new CreateUserRequest();
@@ -149,7 +156,7 @@
         }
         catch (Exception ex)
         {
-            ShowError("API Connection error.");
+            ShowError("API Connection error: " + ex);
         }
 
         StateHasChanged();

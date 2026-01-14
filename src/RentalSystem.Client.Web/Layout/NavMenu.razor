@@ -3,7 +3,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark" style="background-color: rgba(45, 62, 80)">
     <div class="container-fluid">
-        <b class="navbar-brand" href="">RentAThing</b>
+        <b class="navbar-brand" href=""><NavLink class="nav-link" href="">RentAThing</NavLink></b>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -13,7 +13,7 @@
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu" style="border: 0px none #212529; background-color: rgb(45, 62, 80)">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="myProfile" Match="NavLinkMatch.All">
                 <span class="bi bi-person-circle" aria-hidden="true"></span> My profile
             </NavLink>
         </div>
