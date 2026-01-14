@@ -1,77 +1,198 @@
 @page "/signUp"
 @using RentalSystem.Shared.DTOs
+@using RentalSystem.Client.Web.Http
+@using System.Text.RegularExpressions
+@inject UsersApiClient Client
 @layout EmptyLayout
 @inject IJSRuntime JS
 
-<PageTitle>Zarejestruj się</PageTitle>
+<PageTitle>Sign up</PageTitle>
 
 <div style="width: 100%; height: 100vh; display: flex; padding: 0px">
     <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 100); display: flex; font-size: 30px; padding: 0px">
         <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
     </RadzenColumn>
 
-    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
+    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px; visibility: visible; text-align: center">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
+            <RadzenText Text="Sign up" Style="margin: auto; width: 200px; text-align: left; font-size: 40px; margin-bottom: 20px" />
+
+            @if (errorVisibility)
+            {
+                <RadzenText Text="@errorMessage"
+                            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+            }
+
+            @if (successVisibility)
+            {
+                <RadzenText Text="@successMessage"
+                            Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+            }
+
             <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email"></RadzenTextBox>
+            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email" />
 
-            <RadzenText Text="Imię" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Name"></RadzenTextBox>
+            <RadzenText Text="Name" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Name" />
 
-            <RadzenText Text="Nazwisko" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Surname"></RadzenTextBox>
+            <RadzenText Text="Surname" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Surname" />
 
-            <RadzenText Text="Hasło" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password"></RadzenPassword>
+            <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
+            <RadzenText Text="Password needs to be at least 6 characters long." Style="font-size: 10px; width: 200px; margin: auto; text-align: left" />
 
-            <RadzenText Text="Powtórz hasło" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repetedPassword"></RadzenPassword>
+            <RadzenText Text="Repeat password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repeatedPassword" />
 
-            <RadzenText Text="Numer telefonu" Style="margin: auto; width: 200px; text-align: left" />
-            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.PhoneNumber"></RadzenTextBox>
+            <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.PhoneNumber" />
 
-            <RadzenButton Text="Zarejestruj się" Click="@SignUp" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center"></RadzenButton>
+            <RadzenButton Text="Sign up"
+                          Click="@(async () => await Task.Run(async () => await SignUp()))"
+                          Disabled="@(string.IsNullOrEmpty(userRequest.Email))"
+                          IsBusy="@false"
+                          ButtonType="ButtonType.Button" Style="width: 150px; margin: auto; margin-top: 20px" />
+
+            <RadzenText Style="margin-top: 15px; font-size: 13px">
+                Already have an account?
+                <a href="/signIn" style="color: rgba(45, 62, 80, 100)">Sign in!</a>
+            </RadzenText>
         </RadzenColumn>
     </RadzenColumn>
 </div>
 
 
-
-
-@* <RadzenTemplateForm Data="@model" Submit="@Register">
-    <RadzenTextBox @bind-Value="model.Email" Placeholder="Email" />
-    <RadzenPassword @bind-Value="model.Password" Placeholder="Password" />
-    <RadzenButton Text="Register" ButtonType="Submit" />
-</RadzenTemplateForm> *@
-
-
 @code {
-    private CreateUserRequest userRequest = new();
-    private string password;
-    private string repetedPassword;
+    public class FirebaseAuthResponse
+    {
+        public bool Success { get; set; }
+        public string Token { get; set; }
+        public string Error { get; set; }
+
+        public FirebaseAuthResponse(bool success, string token, string error)
+        {
+            Token = token;
+            Success = success;
+            Error = error;
+        }
+    }
+
+    private CreateUserRequest userRequest = new CreateUserRequest();
+    private string password = "";
+    private string repeatedPassword = "";
+    private string errorMessage = "";
+    private bool errorVisibility = false;
+    private string successMessage = "";
+    private bool successVisibility = false;
 
     async Task SignUp()
     {
+        userRequest.Uid = "";
+        userRequest.Role = "";
+        errorVisibility = false;
+        errorMessage = "";
+        successVisibility = false;
+
+        await Task.Yield();
+
+        if (userRequest.Email.Equals(null) || userRequest.Name.Equals(null) || userRequest.Surname.Equals(null) ||
+                password.Equals(null) || repeatedPassword.Equals(null) || userRequest.PhoneNumber.Equals(null))
+        {
+            ShowError("All fields must be filled");
+            return;
+        }
+
+        if (!Regex.IsMatch(userRequest.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase))
+        {
+            ShowError("Wrong email address");
+            return;
+        }
+
+        if (password.Length < 6)
+        {
+            ShowError("Password isn't long enough");
+            return;
+        }
+
+        if (password != repeatedPassword)
+        {
+            ShowError("Passwords don't match");
+            return;
+        }
+
+        if (!Regex.IsMatch(userRequest.PhoneNumber, @"^\d{9}$"))
+        {
+            ShowError("Wrong phone number");
+            return;
+        }
+
+
+        var result = await JS.InvokeAsync<FirebaseAuthResponse>("firebaseAuth.register", userRequest.Email, password);
+
+        if (!result.Success)
+        {
+            Console.WriteLine($"Firebase Error Code: {result.Error}");
+            ShowError(ParseFirebaseError(result.Error));
+            return;
+        }
+
+        string token = result.Token;
         try
         {
-            var jsDefined = await JS.InvokeAsync<bool>("eval", "typeof window.firebaseAuth !== 'undefined'");
-            if (!jsDefined)
-            {
-                Console.WriteLine("firebaseAuth not loaded yet!");
-                return;
-            }
+            var apiResultMessage = await Client.CreateUser(userRequest, token);
 
-            var token = await JS.InvokeAsync<string>("firebaseAuth.register", userRequest.Email, password);
-            Console.WriteLine("Firebase ID Token: " + token);
-        }
-        catch (JSException jsEx)
-        {
-            Console.WriteLine("JS Error: " + jsEx.Message);
+            if (apiResultMessage.StartsWith("Success"))
+            {
+                successMessage = apiResultMessage;
+                successVisibility = true;
+                ClearForm();
+                Console.WriteLine(token);
+            }
+            else
+            {
+                ShowError(apiResultMessage);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Other Error: " + ex.Message);
+            ShowError("API Connection error: " + ex);
         }
+
+        StateHasChanged();
+    }
+
+    private void ShowError(string msg)
+    {
+        errorMessage = msg;
+        errorVisibility = true;
+        StateHasChanged();
+    }
+
+    private void ClearForm()
+    {
+        userRequest = new CreateUserRequest();
+        password = "";
+        repeatedPassword = "";
+    }
+
+    private string ParseFirebaseError(string errorCode)
+    {
+        if (errorCode.Contains("email-already-in-use"))
+            return "This email is already registered.";
+
+        if (errorCode.Contains("weak-password"))
+            return "Password is too weak.";
+
+        if (errorCode.Contains("invalid-email"))
+            return "The email address is badly formatted.";
+
+        if (errorCode.Contains("network-request-failed"))
+            return "Network error. Check your connection.";
+
+        if (errorCode.Contains("Conflict"))
+            return "User with this email already exists in our database.";
+
+        return $"Registration failed: {errorCode}";
     }
 }
-
