@@ -102,7 +102,7 @@ namespace RentalSystem.Client.Desktop
 
                 if (response.Success)
                 {
-                    MessageBox.Show("Status zaktualizowany!");
+                    MessageBox.Show("Status updated!");
                     await LoadListings();
 
                     SelectedListing = null;
@@ -124,7 +124,16 @@ namespace RentalSystem.Client.Desktop
             if (lbItems.SelectedItem is ListingViewModel selected)
             {
                 SelectedListing = selected;
-                txtReason.Text = "";
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] Item {selected.Id} is REJECTED. Reason: {selected.RejectionReason}");
+                if (selected.Status == AppConstants.REJECTED)
+                {
+                    txtReason.Text = "eoeoeo";
+                    Console.WriteLine($"[CONSOLE] Reason: {selected.RejectionReason}");
+                }
+                else
+                {
+                    txtReason.Text = "";
+                }
             }
             else
             {
@@ -132,16 +141,16 @@ namespace RentalSystem.Client.Desktop
             }
         }
 
-        private void BtnApprove_Click(object sender, RoutedEventArgs e) => SendModerationDecision("APPROVED", null);
+        private void BtnApprove_Click(object sender, RoutedEventArgs e) => SendModerationDecision(AppConstants.APPROVED, null);
 
         private void BtnReject_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtReason.Text))
             {
-                MessageBox.Show("Podaj powód!");
+                MessageBox.Show("Give reason!");
                 return;
             }
-            SendModerationDecision("REJECTED", txtReason.Text);
+            SendModerationDecision(AppConstants.REJECTED, txtReason.Text);
         }
 
         private Item MapToDomain(ItemGrpcModel protoItem)
@@ -157,6 +166,7 @@ namespace RentalSystem.Client.Desktop
                 Status = protoItem.Status,
                 OwnerId = protoItem.OwnerId,
                 Photos = protoItem.Photos.ToList(),
+                RejectionReason = protoItem.RejectionReason ?? "",
                 Location = new ItemLocation
                 {
                     City = protoItem.Location.City,

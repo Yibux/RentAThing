@@ -38,5 +38,10 @@ namespace RentalSystem.Shared.AppConstants
         public const int BACKEND_HTTP_PORT = 5002;
         public static string BACKEND_GRPC_URL => $"{BACKEND_HOST}:{BACKEND_GRPC_PORT}";
         public static string BACKEND_REST_URL => $"{BACKEND_HOST}:{BACKEND_HTTP_PORT}";
+
+        // Item Review Statuses
+        public const string APPROVED = "APPROVED";
+        public const string REJECTED = "REJECTED";
+        public const string PENDING = "PENDING";
     }
 }
