@@ -28,7 +28,18 @@ namespace RentalSystem.Client.Desktop
         public string PriceDisplay => $"{Model.PricePerDay} {Model.Currency} / day";
         public string Status => Model.Status;
         public ItemLocation Location => Model.Location;
-        public string RejectionReason => Model.RejectionReason;
+        public string RejectionReason
+        {
+            get => Model.RejectionReason;
+            set
+            {
+                if (Model.RejectionReason != value)
+                {
+                    Model.RejectionReason = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
 
         public bool IsApproveEnabled => Status != AppConstants.APPROVED;

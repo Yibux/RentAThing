@@ -141,13 +141,16 @@
                             </Border>
 
                             <TextBox x:Name="txtReason" 
-             Height="60" 
-             TextWrapping="Wrap" 
-             AcceptsReturn="True" 
-             BorderBrush="#AAA" 
-             Padding="5"
-             Visibility="{Binding SelectedListing.ReasonInputVisibility}"
-             IsEnabled="{Binding SelectedListing.IsRejectEnabled}"/>
+                                 Height="60" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True" 
+                                 BorderBrush="#AAA" 
+                                 Padding="5"
+         
+                                 Text="{Binding SelectedListing.RejectionReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+         
+                                 Visibility="{Binding SelectedListing.ReasonInputVisibility}"
+                                 IsEnabled="{Binding SelectedListing.IsRejectEnabled}"/>
 
                         </StackPanel>
 

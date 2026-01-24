@@ -5,7 +5,9 @@ using RentalSystem.Shared.Models;
 using RentalSystem.Shared.Protos;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -124,20 +126,32 @@ namespace RentalSystem.Client.Desktop
             if (lbItems.SelectedItem is ListingViewModel selected)
             {
                 SelectedListing = selected;
-                System.Diagnostics.Debug.WriteLine($"[DEBUG] Item {selected.Id} is REJECTED. Reason: {selected.RejectionReason}");
-                if (selected.Status == AppConstants.REJECTED)
+
+                // Tworzymy anonimowy obiekt tylko z ważnymi danymi (żeby pominąć wielkie zdjęcia)
+                var debugData = new
                 {
-                    txtReason.Text = "eoeoeo";
-                    Console.WriteLine($"[CONSOLE] Reason: {selected.RejectionReason}");
-                }
-                else
-                {
-                    txtReason.Text = "";
-                }
+                    ID = selected.Id,
+                    Title = selected.Title,
+                    Status = selected.Status,
+                    // To jest kluczowe pole, które chcemy sprawdzić:
+                    RAW_REASON_FROM_MODEL = selected.Model.RejectionReason,
+                    VIEWMODEL_REASON = selected.RejectionReason
+                };
+
+                // Serializacja do ładnego JSONa
+                string json = JsonSerializer.Serialize(debugData, new JsonSerializerOptions { WriteIndented = true });
+
+                // Wyświetl w oknie dialogowym - nie da się tego przegapić
+                MessageBox.Show(json, "DEBUG - Zawartość Obiektu");
+
+                // Oraz wrzuć w konsolę Output w Visual Studio
+                Debug.WriteLine("---------------- SELECTION DEBUG ----------------");
+                Debug.WriteLine(json);
             }
             else
             {
                 SelectedListing = null;
+                Debug.WriteLine("-------------TO JEST NULLEM------------");
             }
         }
 
@@ -145,12 +159,12 @@ namespace RentalSystem.Client.Desktop
 
         private void BtnReject_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtReason.Text))
+            if (string.IsNullOrWhiteSpace(SelectedListing.RejectionReason))
             {
                 MessageBox.Show("Give reason!");
                 return;
             }
-            SendModerationDecision(AppConstants.REJECTED, txtReason.Text);
+            SendModerationDecision(AppConstants.REJECTED, SelectedListing.RejectionReason);
         }
 
         private Item MapToDomain(ItemGrpcModel protoItem)
