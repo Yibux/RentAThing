@@ -1,17 +1,16 @@
-﻿using Newtonsoft.Json.Linq;
-using RentalSystem.Shared.DTOs;
+﻿using RentalSystem.Shared.DTOs;
 using RentalSystem.Shared.Models;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace RentalSystem.Client.Web.Http
+namespace RentalSystem.Client.Web.RestClientNS
 {
-    public class UsersApiClient
+    public class RestClient
     {
         private readonly HttpClient _client;
 
 
-        public UsersApiClient(HttpClient client)
+        public RestClient(HttpClient client)
         {
             _client = client;
         }
@@ -64,7 +63,7 @@ namespace RentalSystem.Client.Web.Http
             {
                 return await response.Content.ReadFromJsonAsync<UserProfile>();
             }
-
+            
             return null;
         }
 
@@ -80,6 +79,20 @@ namespace RentalSystem.Client.Web.Http
             }
 
             return "Error: Account wasn't deleted";
+        }
+
+        public async Task<List<Item>?> GetItems(string token)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("/api/Items");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<Item>>();
+            }
+
+            return null;
         }
     }
 }
