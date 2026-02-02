@@ -94,5 +94,19 @@ namespace RentalSystem.Client.Web.RestClientNS
 
             return null;
         }
+
+        public async Task<List<Rental>?> GetRentals(string token)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("/api/Rentals");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<Rental>>();
+            }
+
+            return null;
+        }
     }
 }

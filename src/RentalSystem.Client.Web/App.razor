@@ -1,23 +1,21 @@
 ﻿@inject NavigationManager NavManager
 
-@* <CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(EmptyLayout)" />
-        </Found>
-        <NotFound>
-            <LayoutView Layout="@typeof(EmptyLayout)">
-                <p>Not found</p>
-            </LayoutView>
-        </NotFound>
-    </Router>
-</CascadingAuthenticationState> *@
-
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(EmptyLayout)" />
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(EmptyLayout)">
+                <NotAuthorized>
+                    @{
+                        NavManager.NavigateTo("/signIn");
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                        <RadzenProgressBar ProgressValue="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="width: 200px" />
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
@@ -32,8 +30,7 @@
 
 
 
-
-@code {
+@* @code {
     protected override void OnInitialized()
     {
         if (NavManager.Uri.EndsWith("/"))
@@ -41,4 +38,4 @@
             NavManager.NavigateTo("/signIn", true);
         }
     }
-}
+} *@

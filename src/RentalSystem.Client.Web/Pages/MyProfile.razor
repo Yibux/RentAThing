@@ -1,18 +1,12 @@
 @layout MainLayout
 @page "/myProfile"
+@attribute [Authorize]
 @using System.Text.RegularExpressions
-@* @using RentalSystem.Client.Web.RestClientNS *@
-@* @using RentalSystem.Shared.DTOs *@
-@* @using RentalSystem.Shared.Models *@
-@* @inject DialogService DialogService *@
-@* @inject IJSRuntime JS *@
-@* @inject RestClient Client *@
-@* @inject NavigationManager NavManager *@
 
 
 <PageTitle>My profile</PageTitle>
 
-<RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
+<RadzenColumn Style="display: grid; align-content: center; height: 100vh; width: 250px; margin: auto;">
 
     @if (errorVisibility)
     {
@@ -26,32 +20,32 @@
                     Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
     }
 
-    <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
+    <RadzenText Text="EMAIL" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
     <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Email" Disabled="true" />
 
-    <RadzenText Text="Name" Style="margin: auto; width: 200px; text-align: left" />
+    <RadzenText Text="NAME" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
     <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Name" Disabled="@nonEditMode" />
 
-    <RadzenText Text="Surname" Style="margin: auto; width: 200px; text-align: left" />
+    <RadzenText Text="SURNAME" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
     <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.Surname" Disabled="@nonEditMode" />
 
-    <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
+    <RadzenText Text="PHONE NUMBER" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
     <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="user.PhoneNumber" Disabled="@nonEditMode" />
 
-    <RadzenText Text="Average rating" Style="margin: auto; width: 200px; text-align: left" />
+    <RadzenText Text="AVERAGE RATING" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
     <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="averageRating" Disabled="true" />
 
     @if (nonEditMode)
     {
-        <RadzenButton Text="Edit" Click="@editMode" ButtonType="ButtonType.Button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+        <RadzenButton Text="EDIT" Click="@editMode" ButtonType="ButtonType.Button" class="rz-button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; text-align: center" />
     }
 
     @if (!nonEditMode)
     {
-        <RadzenButton Text="Save" Click="@editUserData" ButtonType="ButtonType.Button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+        <RadzenButton Text="SAVE" Click="@editUserData" ButtonType="ButtonType.Button" class="rz-button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; text-align: center" />
     }
 
-    <RadzenButton Text="Delete account" Click="@deleteUser" ButtonType="ButtonType.Button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center; background-color: rgb(255,0,0)" />
+    <RadzenButton Text="DELETE ACCOUNT" Click="@deleteUser" ButtonType="ButtonType.Button" class="rz-button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; text-align: center; background-color: rgb(217,84,79) !important;" />
 
 </RadzenColumn>
 
@@ -159,19 +153,19 @@
         successVisibility = false;
         errorVisibility = false;
 
-        var result = await DialogService.OpenAsync("Remove account", ds =>
+        bool? result = await DialogService.OpenAsync("Remove account", ds =>
         @<RadzenStack Gap="1.5rem">
             <p>Are you sure, that you want to remove your account?</p>
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
                 <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenButton Text="Yes" Click="() => ds.Close(true)" Style="width: 80px; background-color: rgb(255,0,0);" />
-                    <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            <RadzenButton Text="YES" Click="() => ds.Close(true)" Style="width: 80px !important; background-color: rgb(217,84,79) !important;" />
+            <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 80px !important;" />
                 </RadzenStack>
             </RadzenStack>
         </RadzenStack>
         );
 
-        if (result)
+        if (result == true)
         {
             var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
             var response = await Client.DeleteUserProfile(storageToken, user.Id);
@@ -195,12 +189,18 @@
                     await DialogService.Alert("For security reasons, you must log in again before deleting your account.");
                 }
             }
+
+            else
+            {
+                successVisibility = false;
+                errorVisibility = true;
+            }
         }
 
         else
         {
             successVisibility = false;
-            errorVisibility = true;
+            errorVisibility = false;
         }
     }
 }

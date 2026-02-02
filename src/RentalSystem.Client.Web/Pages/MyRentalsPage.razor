@@ -1,8 +1,109 @@
 @layout MainLayout
 @page "/myRentals"
+@attribute [Authorize]
+
 
 <PageTitle>My rentals</PageTitle>
 
-<h1>Hello my rentals!</h1>
 
-Welcome to your new app.
+<RadzenColumn>
+
+    @if (rentals != null)
+    {
+        <RadzenDataList TItem="Rental" Data="@rentals" WrapItems="true" Style="width: 100%;">
+            <Template Context="item">
+                <RadzenCard Style="width: 200px; cursor: pointer; height: 115px; margin: auto; padding: 10px; margin-bottom: 10px"
+                            @onclick="@(() => OnItemClick(item))">
+                    <RadzenRow Style="display: flex; align-items: center;">
+
+                        <RadzenColumn Size="8" Style="display: flex; flex-direction: column; ">
+                            <RadzenRow Style="display: flex; flex-direction: row; align-items: center;">
+                                <RadzenImage Path="@item.Photos[0]" Style="width: 50px; height: 50px" />
+                                <RadzenLabel Text="@item.ItemId" class="rz-text"
+                                             Style="
+                                            padding-left: 10px;
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                            flex-grow: 1;
+                                            cursor: pointer;
+                                            display: flex;
+                                            align-items: center;
+                                            text-align: left;" />
+                            </RadzenRow>
+
+                            <RadzenLabel Text="@($"Start date: {item.StartDate.ToString("dd.MM.yyyy")}")" class="rz-text" Style="color: rgb(133,133,133); font-size: 15px" />
+                            <RadzenLabel Text="@($"End date: {item.EndDate.ToString("dd.MM.yyyy")}")" class="rz-text" Style="color: rgb(133,133,133); font-size: 15px" />
+                        </RadzenColumn>
+
+
+                        <RadzenColumn Size="4" Style="display: flex; align-items: center; justify-content: flex-end;">
+                            <RadzenLabel Text="@($"{item.Price} PLN")" class="rz-text" Style="color: black; font-size: 20px;" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenCard>
+            </Template>
+        </RadzenDataList>
+    }
+</RadzenColumn>
+
+
+@* "borrowerId": "3ZmVtP7tt1bN8J7LQgw1nLIVirz2",
+    "createdAt": "2026-01-26T02:31:08.593725Z",
+    "endDate": "2026-01-26T02:23:44.571Z",
+    "id": "174z5Y1vWDApHukPamsU",
+    "isRated": false,
+    "itemId": "FC5N7yD5h0Jw3o12TRxZ",
+    "ownerId": "YAoP1ifVRGZBw1JELOM1qA6OkJ52",
+,
+    "startDate": "2026-01-26T02:23:44.571Z",
+    "status": "REQUESTED" *@
+
+
+
+@code {
+    private List<Rental> rentals = new();
+
+    private List<Rental> test = new()
+    {
+        new Rental
+        {
+            ItemId = "test",
+            Photos = new List<string> { "favicon.png" },
+            Price = 500.0m,
+            StartDate = new DateTime(2026, 2, 1),
+            EndDate = new DateTime(2026, 2, 10),
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(storageToken)) return;
+
+            var response = await Client.GetRentals(storageToken);
+
+            if (response != null)
+            {
+                rentals = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while loading data: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnItemClick(Rental item)
+    {
+
+    }
+}

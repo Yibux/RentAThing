@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RentalSystem.Shared.DTOs
+﻿namespace RentalSystem.Shared.DTOs
 {
     public class CreateRentalDto
     {
