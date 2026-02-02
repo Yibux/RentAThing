@@ -107,5 +107,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<AuthGrpcService>();
 app.MapGrpcService<ItemsGrpcService>();
+app.MapGrpcService<RentalsGrpcService>();
 
 app.Run();

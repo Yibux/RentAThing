@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option csharp_namespace = "RentalSystem.Shared.Protos";
+
+package rentals;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service RentalsGrpc {
+  rpc GetAllRentals (google.protobuf.Empty) returns (RentalListResponse);
+  rpc GetMyRentals (google.protobuf.Empty) returns (RentalListResponse);
+  rpc CreateRental (CreateRentalRequest) returns (CreateRentalResponse);
+  rpc UpdateRental (UpdateRentalRequest) returns (google.protobuf.Empty);
+  rpc RateOwner (RateOwnerRequest) returns (google.protobuf.Empty);
+}
+
+message RentalMessage {
+  string id = 1;
+  string borrower_id = 2;
+  string owner_id = 3;
+  string item_id = 4;
+  google.protobuf.Timestamp start_date = 5;
+  google.protobuf.Timestamp end_date = 6;
+  double price = 7;
+  string status = 8;
+  bool is_rated = 9;
+  repeated string photos = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message RentalListResponse {
+  repeated RentalMessage rentals = 1;
+}
+
+message CreateRentalRequest {
+  string item_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+}
+
+message CreateRentalResponse {
+  string id = 1;
+}
+
+message UpdateRentalRequest {
+  string id = 1;
+  google.protobuf.Timestamp start_date = 2; 
+  google.protobuf.Timestamp end_date = 3;
+  string status = 4;
+}
+
+message RateOwnerRequest {
+  string rental_id = 1;
+  int32 rating = 2;
+}
