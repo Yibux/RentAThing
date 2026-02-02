@@ -20,6 +20,9 @@
                 <Button Content="Listing Verification" Height="45" Click="BtnListings_Click" Margin="0,5,0,0"
                         Background="Transparent" Foreground="White" BorderThickness="0" FontSize="14" HorizontalContentAlignment="Left" Padding="20,0"/>
 
+                <Button Content="Rentals" Height="45" Click="BtnRentals_Click" Margin="0,5,0,0"
+                        Background="Transparent" Foreground="White" BorderThickness="0" FontSize="14" HorizontalContentAlignment="Left" Padding="20,0"/>
+
                 <Separator Background="#44566C" Margin="10,20"/>
 
                 <Button Content="Log out" Height="45" Click="BtnLogout_Click"

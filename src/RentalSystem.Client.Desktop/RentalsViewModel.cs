@@ -1,40 +1,65 @@
-﻿using System.Collections.ObjectModel;
-using System.Net.Http;
-using System.Net.Http.Json;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using RentalSystem.Shared.DTOs;
+using Grpc.Core;
+using Grpc.Net.Client;
+using RentalSystem.Shared.AppConstants;
 using RentalSystem.Shared.Models;
+using RentalSystem.Shared.Protos;
 
 namespace RentalSystem.Client.Desktop
 {
-    public class RentalsViewModel
+    public class RentalsViewModel : IDisposable
     {
-        private readonly HttpClient _httpClient;
+        private readonly GrpcChannel _channel;
+        private readonly RentalsGrpc.RentalsGrpcClient _client;
+        private readonly string _token;
+
         public ObservableCollection<Rental> Rentals { get; set; } = new ObservableCollection<Rental>();
 
         public ICommand CancelRentalCommand { get; }
 
-        public RentalsViewModel(HttpClient httpClient)
+        public RentalsViewModel(string token)
         {
-            _httpClient = httpClient;
+            _token = token;
+
+            _channel = GrpcChannel.ForAddress(AppConstants.BACKEND_GRPC_URL, new GrpcChannelOptions
+            {
+                Credentials = ChannelCredentials.Insecure
+            });
+
+            _client = new RentalsGrpc.RentalsGrpcClient(_channel);
+
             CancelRentalCommand = new RelayCommand<Rental>(async (r) => await CancelRentalAsync(r));
         }
+
+        private Metadata AuthHeaders => new Metadata
+        {
+            { "Authorization", $"Bearer {_token}" }
+        };
 
         public async Task LoadRentalsAsync()
         {
             try
             {
-                var result = await _httpClient.GetFromJsonAsync<List<Rental>>("api/rentals");
-                if (result != null)
+                // Przekazujemy AuthHeaders jako drugi parametr
+                var response = await _client.GetAllRentalsAsync(new Google.Protobuf.WellKnownTypes.Empty(), AuthHeaders);
+
+                Rentals.Clear();
+                foreach (var msg in response.Rentals)
                 {
-                    Rentals.Clear();
-                    foreach (var rental in result) Rentals.Add(rental);
+                    Rentals.Add(MapToModel(msg));
                 }
+            }
+            catch (RpcException ex)
+            {
+                MessageBox.Show($"Błąd gRPC: {ex.Status.Detail} ({ex.StatusCode})");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Błąd: {ex.Message}");
             }
         }
 
@@ -42,30 +67,53 @@ namespace RentalSystem.Client.Desktop
         {
             if (rental == null || rental.Status == "CANCELLED") return;
 
-            var confirm = MessageBox.Show("Do you want to cancel rental?", "Approve",
+            var confirm = MessageBox.Show("Are you sure to cancel the rental?", "Approval",
                                           MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes) return;
 
             try
             {
-                var updateDto = new UpdateRentalDto { Status = "CANCELLED" };
-
-                var response = await _httpClient.PatchAsJsonAsync($"api/rentals/{rental.Id}", updateDto);
-
-                if (response.IsSuccessStatusCode)
+                var request = new UpdateRentalRequest
                 {
-                    rental.Status = "CANCELLED";
-                    MessageBox.Show("Rental has been canceled.");
-                }
-                else
-                {
-                    MessageBox.Show("Unable to decline rental.");
-                }
+                    Id = rental.Id,
+                    Status = "CANCELLED"
+                };
+
+                await _client.UpdateRentalAsync(request, AuthHeaders);
+
+                rental.Status = "CANCELLED";
+                MessageBox.Show("Rental has been canceled.");
+            }
+            catch (RpcException ex)
+            {
+                MessageBox.Show($"Nie udało się anulować: {ex.Status.Detail}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"API Error: {ex.Message}");
+                MessageBox.Show($"Błąd: {ex.Message}");
             }
+        }
+
+        private Rental MapToModel(RentalMessage msg)
+        {
+            return new Rental
+            {
+                Id = msg.Id,
+                BorrowerId = msg.BorrowerId,
+                OwnerId = msg.OwnerId,
+                ItemId = msg.ItemId,
+                Status = msg.Status,
+                IsRated = msg.IsRated,
+                StartDate = msg.StartDate.ToDateTime(),
+                EndDate = msg.EndDate.ToDateTime(),
+                CreatedAt = msg.CreatedAt.ToDateTime(),
+                Price = (decimal)msg.Price
+            };
+        }
+
+        public void Dispose()
+        {
+            _channel?.Dispose();
         }
     }
 }

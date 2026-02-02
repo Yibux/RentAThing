@@ -63,7 +63,6 @@ namespace RentalSystem.Backend.Services
 
             var dto = new UpdateRentalDto();
 
-            // Mapowanie opcjonalnych pól
             if (request.StartDate != null) dto.StartDate = request.StartDate.ToDateTime();
             if (request.EndDate != null) dto.EndDate = request.EndDate.ToDateTime();
             if (!string.IsNullOrEmpty(request.Status)) dto.Status = request.Status;
