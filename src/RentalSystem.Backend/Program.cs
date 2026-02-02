@@ -48,7 +48,6 @@ builder.Services.AddSingleton<FirestoreDb>(provider => FirestoreDb.Create(projec
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IItemsService, ItemsService>();
 builder.Services.AddScoped<IRentalsService, RentalsService>();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -107,5 +106,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGrpcService<AuthGrpcService>();
+app.MapGrpcService<ItemsGrpcService>();
 
 app.Run();
