@@ -26,6 +26,11 @@ namespace RentalSystem.Client.Desktop
             MainFrame.Navigate(new ListingsPage(_token));
         }
 
+        private void BtnRentals_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new RentalsPage(_token));
+        }
+
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
             new LoginWindow().Show();

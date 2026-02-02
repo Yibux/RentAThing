@@ -25,6 +25,18 @@ namespace RentalSystem.Backend.Controllers
             return Ok(rentals);
         }
 
+        [HttpGet("my-rentals")]
+        public async Task<IActionResult> GetMyRentals()
+        {
+            var borrowerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(borrowerId))
+            {
+                return Unauthorized("User not found.");
+            }
+            var rentals = await _rentalsService.GetUserRentalsAsync(borrowerId);
+            return Ok(rentals);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRentalDto dto)
         {
@@ -39,5 +51,34 @@ namespace RentalSystem.Backend.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateRental(string id, [FromBody] UpdateRentalDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var success = await _rentalsService.UpdateRentalAsync(id, userId, dto);
+
+            if (!success) return BadRequest("Cannot update rental (wrong user, status or id).");
+
+            return NoContent();
+        }
+
+        [HttpPost("{id}/rate")]
+        public async Task<IActionResult> RateOwner(string id, [FromBody] RateUserDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            try
+            {
+                var success = await _rentalsService.RateOwnerAsync(id, userId, dto.Rating);
+                if (!success) return BadRequest("Cannot rate this rental (already rated or not yours).");
+                return Ok("User rated successfully.");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

@@ -36,6 +36,9 @@ namespace RentalSystem.Shared.Models
         public string PhoneNumber { get; set; } = string.Empty;
 
         [FirestoreProperty]
+        public int RatingsCount { get; set; } = 0;
+
+        [FirestoreProperty]
         public string Role { get; set; } = string.Empty;
     }
 }

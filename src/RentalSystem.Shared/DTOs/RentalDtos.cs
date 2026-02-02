@@ -8,4 +8,16 @@ namespace RentalSystem.Shared.DTOs
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
     }
+
+    public class UpdateRentalDto
+    {
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Status { get; set; }
+    }
+
+    public class RateUserDto
+    {
+        public int Rating { get; set; }
+    }
 }

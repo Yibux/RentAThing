@@ -72,7 +72,7 @@ namespace RentalSystem.Backend.Services
             return new ActionResponse
             {
                 Success = success,
-                Message = success ? "Zaktualizowano status." : "Nie znaleziono przedmiotu."
+                Message = success ? "Status has been updated." : "Item not found."
             };
         }
     }

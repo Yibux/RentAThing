@@ -11,11 +11,15 @@ namespace RentalSystem.Backend.Services
         Task<Item> AddItemAsync(string ownerId, CreateItemDto dto);
         Task<bool> ModerateItemAsync(string id, ModerateItemDto dto);
         Task<bool> DeleteItemAsync(string id);
+        Task<bool> UpdateItemAsync(string id, CreateItemDto dto);
     }
 
     public interface IRentalsService
     {
         Task<List<Rental>> GetAllRentalsAsync();
+        Task<List<Rental>> GetUserRentalsAsync(string userId);
         Task<string> CreateRentalAsync(string borrowerId, CreateRentalDto dto);
+        Task<bool> UpdateRentalAsync(string rentalId, string userId, UpdateRentalDto dto);
+        Task<bool> RateOwnerAsync(string rentalId, string borrowerId, int rating);
     }
 }
