@@ -27,10 +27,23 @@ namespace RentalSystem.Backend.Services
             }).ToList();
         }
 
+        public async Task<List<Rental>> GetUserRentalsAsync(string userId)
+        {
+            var query = _firestore.Collection(CollectionName)
+                .WhereEqualTo("BorrowerId", userId);
+            var snapshot = await query.GetSnapshotAsync();
+            return snapshot.Documents.Select(d =>
+            {
+                var rental = d.ConvertTo<Rental>();
+                rental.Id = d.Id;
+                return rental;
+            }).ToList();
+        }
+
         public async Task<string> CreateRentalAsync(string borrowerId, CreateRentalDto dto)
         {
             var item = await _itemsService.GetItemByIdAsync(dto.ItemId);
-            if (item == null) throw new Exception("Przedmiot nie istnieje.");
+            if (item == null) throw new Exception("Item does not exist.");
 
             var days = (dto.EndDate - dto.StartDate).Days;
             if (days < 1) days = 1;

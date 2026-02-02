@@ -16,6 +16,7 @@ namespace RentalSystem.Backend.Services
     public interface IRentalsService
     {
         Task<List<Rental>> GetAllRentalsAsync();
+        Task<List<Rental>> GetUserRentalsAsync(string userId);
         Task<string> CreateRentalAsync(string borrowerId, CreateRentalDto dto);
     }
 }

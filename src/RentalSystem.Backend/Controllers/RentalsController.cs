@@ -25,6 +25,18 @@ namespace RentalSystem.Backend.Controllers
             return Ok(rentals);
         }
 
+        [HttpGet("my-rentals")]
+        public async Task<IActionResult> GetMyRentals()
+        {
+            var borrowerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(borrowerId))
+            {
+                return Unauthorized("User not found.");
+            }
+            var rentals = await _rentalsService.GetUserRentalsAsync(borrowerId);
+            return Ok(rentals);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRentalDto dto)
         {
