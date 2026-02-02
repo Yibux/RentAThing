@@ -25,6 +25,18 @@ namespace RentalSystem.Backend.Services
             }).ToList();
         }
 
+        public async Task<List<Item>> GetAllUserItemsAsync(string id)
+        {
+            var query = _firestore.Collection(CollectionName).WhereEqualTo("OwnerId", ownerId);
+            var snapshot = await _firestore.Collection(CollectionName).GetSnapshotAsync();
+            return snapshot.Documents.Select(d =>
+            {
+                var item = d.ConvertTo<Item>();
+                item.Id = d.Id;
+                return item;
+            }).ToList();
+        }
+
         public async Task<Item?> GetItemByIdAsync(string id)
         {
             var doc = await _firestore.Collection(CollectionName).Document(id).GetSnapshotAsync();

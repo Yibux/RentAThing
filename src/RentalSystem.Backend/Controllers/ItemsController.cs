@@ -25,6 +25,21 @@ namespace RentalSystem.Backend.Controllers
             return Ok(items);
         }
 
+        [HttpGet("my-items")]
+        public async Task<IActionResult> GetMyItems()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not found.");
+            }
+
+            var items = await _itemsService.GetAllUserItemsAsync(userId);
+
+            return Ok(items);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
