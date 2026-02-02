@@ -5,6 +5,157 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (items != null && items.Any())
+{
+    <RadzenGoogleMap Zoom="6" Center=@(new GoogleMapPosition() { Lat = 52.0, Lng = 19.0 }) MarkerClick=@OnMarkerClick MapId="6ad1a7f620fedeb42b2f1504"
+                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs">
+        <Markers>
+            @foreach (var item in items)
+            {
+                @* <RadzenGoogleMapMarker Title="@item.Title"
+                                       Position=@(new GoogleMapPosition() { Lat = item.Location.Latitude, Lng = item.Location.Longitude }) /> *@
+                <RadzenGoogleMapMarker Title="@($"{item.Title} | {item.Id}")"
+                                       Position=@(new GoogleMapPosition() { Lat = item.Location.Latitude, Lng = item.Location.Longitude }) />
+            }
+        </Markers>
+    </RadzenGoogleMap>
+}
+else if (isLoading)
+{
+    <p>Loading map and items...</p>
+}
 
-Welcome to your new app.
+@if (chosenItem.Title != null)
+{
+    <RadzenLabel Text="@chosenItem.Title" Style="color: rgb(133,133,133); font-size: 20px" />
+    <RadzenLabel Text="@chosenItem.Id" class="rz-text" />
+    <RadzenImage Path="@chosenItem.Photos[0]" Style="width: 128px; height: 128px; margin-top: 20px" />
+
+    <RadzenLabel Text="DESCRIPTION" class="rz-text" Style="margin-top: 20px" />
+    <RadzenTextBox Value="@chosenItem.Description" Disabled="true" Style="color: #000000"></RadzenTextBox>
+
+    <RadzenRow Style="margin-top: 20px">
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
+            <RadzenTextBox Value="@chosenItem.PricePerDay.ToString()" Disabled="true" Style="color: #000000"></RadzenTextBox>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LOCATION" class="rz-text" />
+            <RadzenTextBox Value="@location" Disabled="true" Style="color: #000000"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @* <RadzenRow Style="margin-top: 40px">
+        <RadzenButton Text="RENT" Click="@Rent" class="rz-button" Style="width: 150px; margin: auto"></RadzenButton>
+        <RadzenButton Text="EDIT" Click="@EditItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto"></RadzenButton>
+        <RadzenButton Text="DELETE" Click="@DeleteItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto; background-color: rgb(217,84,79) !important;"></RadzenButton>
+    </RadzenRow> *@
+}
+
+
+@code {
+    private List<Item> items = new();
+    private bool isLoading = true;
+    private Item chosenItem = new()
+    {
+        Title = "",
+        Photos = new List<string> { "favicon.png" },
+        PricePerDay = 7.0m
+    };
+    private string location = "";
+
+    private List<Item> test = new()
+    {
+        new Item
+        {
+            Title = "test",
+            Photos = new List<string> { "favicon.png" },
+            PricePerDay = 7.0m,
+
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(storageToken)) return;
+
+            var response = await Client.GetItems(storageToken);
+
+            if (response != null && response.Any())
+            {
+                items = response;
+                chosenItem = items[0];
+                location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                isLoading = false;
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(storageToken)) return;
+
+                var response_2 = await Client.GetUserProfile(storageToken);
+
+                if (response_2 != null)
+                {
+                    UserProfile user = response_2;
+                    await JS.InvokeAsync<string>("sessionStorage.setItem", "userID", user.Id);
+
+                    var userId = await JS.InvokeAsync<string>("sessionStorage.getItem", "userID");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while loading data: {ex.Message}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while loading data: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    // void OnMarkerClick(RadzenGoogleMapMarker marker)
+    // {
+    //     Console.WriteLine(marker.Title);
+
+    //     var clickedItem = items.FirstOrDefault(i =>
+    //         i.Location.Latitude == marker.Position.Lat &&
+    //         i.Location.Longitude == marker.Position.Lng);
+
+    //     if (clickedItem != null)
+    //     {
+    //         chosenItem = clickedItem;
+    //         location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+
+    //         isLoading = false;
+    //         StateHasChanged();
+    //     }
+    // }
+
+    void OnMarkerClick(RadzenGoogleMapMarker marker)
+    {
+        // Pobieramy ID, które jest po znaku "|"
+        var parts = marker.Title.Split('|');
+        if (parts.Length > 1)
+        {
+            var itemId = parts[1].Trim();
+            chosenItem = items.FirstOrDefault(i => i.Id == itemId);
+
+            if (chosenItem != null)
+            {
+                location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+            }
+        }
+    }
+}

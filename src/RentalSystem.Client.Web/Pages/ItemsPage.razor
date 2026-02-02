@@ -12,7 +12,7 @@
         <RadzenColumn Size="4" Style="display: flex;  flex-direction: column; align-items: center;">
 
             <RadzenRow>
-                <RadzenTextBox Placeholder="Search"></RadzenTextBox>
+                <RadzenTextBox Placeholder="Search" @bind-Value="searchPhrase"></RadzenTextBox>
                 <RadzenButton Click="@Search" class="rz-button" Style="width: 45px; padding-left: 10px; padding-right: 10px"><span class="bi bi-search" aria-hidden="true"></span></RadzenButton>
                 <RadzenButton Click="@Filter" class="rz-button" Style="width: 45px; padding-left: 10px; padding-right: 10px"><span class="bi bi-filter" aria-hidden="true" style="font-size: 18px"></span></RadzenButton>
             </RadzenRow>
@@ -46,9 +46,16 @@
         <RadzenColumn Size="8" Style="display: flex; flex-direction: column; background-color: #ffffff; height: 100%; padding: 20px; border-radius: 5px; box-shadow: 0 0px 12px rgba(0,0,0,0.15);">
             @if (chosenItem.Title != null)
             {
-                <RadzenLabel Text="@chosenItem.Title" Style="color: rgb(133,133,133); font-size: 20px" />
+                <RadzenLabel Text="@chosenItem.Title" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
                 <RadzenLabel Text="@chosenItem.Id" class="rz-text" />
-                <RadzenImage Path="@chosenItem.Photos[0]" Style="width: 128px; height: 128px; margin-top: 20px" />
+                @* <RadzenImage Path="@chosenItem.Photos[0]" Style="width: 128px; height: 128px; margin-top: 20px" /> *@
+
+                <div class="d-flex flex-wrap">
+                    @foreach (var img in chosenItem.Photos)
+                    {
+                        <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
+                    }
+                </div>
 
                 <RadzenLabel Text="DESCRIPTION" class="rz-text" Style="margin-top: 20px" />
                 <RadzenTextBox Value="@chosenItem.Description" Disabled="true" Style="color: #000000"></RadzenTextBox>
@@ -66,9 +73,15 @@
                 </RadzenRow>
 
                 <RadzenRow Style="margin-top: 40px">
-                    <RadzenButton Text="RENT" Click="@Rent" class="rz-button" Style="width: 150px; margin: auto"></RadzenButton>
-                    <RadzenButton Text="EDIT" Click="@EditItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto"></RadzenButton>
-                    <RadzenButton Text="DELETE" Click="@DeleteItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto; background-color: rgb(217,84,79) !important;"></RadzenButton>
+                    @if (chosenItem.OwnerId != userID)
+                    {
+                        <RadzenButton Text="RENT" Click="@Rent" class="rz-button" Style="width: 150px; margin: auto"></RadzenButton>
+                    }
+                    else
+                    {
+                        <RadzenButton Text="EDIT" Click="@EditItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto"></RadzenButton>
+                        <RadzenButton Text="DELETE" Click="@DeleteItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto; background-color: rgb(217,84,79) !important;"></RadzenButton>
+                    }
                 </RadzenRow>
             }
 
@@ -81,6 +94,9 @@
 @code {
     private List<Item> items = new();
     private bool isLoading = true;
+    string userID = "";
+    string searchPhrase = "";
+
     private Item chosenItem = new()
     {
         Title = "test",
@@ -117,6 +133,8 @@
                 location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
                 isLoading = false;
             }
+
+            userID = await JS.InvokeAsync<string>("sessionStorage.getItem", "userID");
         }
         catch (Exception ex)
         {
@@ -141,8 +159,10 @@
     <RadzenLabel Text="PRICE" class="rz-text" />
     <RadzenTextBox Value="150" Style="color: #000000"></RadzenTextBox>
 
-    <RadzenButton Text="RENT" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+    <RadzenRow>
+        <RadzenButton Text="RENT" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
 </RadzenStack>
         );
 
@@ -201,11 +221,25 @@
     <RadzenLabel Text="ADDRESS LABEL" class="rz-text" />
     <RadzenTextBox Style="color: #000000"></RadzenTextBox>
 
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LATITUDE" class="rz-text" />
+            <RadzenTextBox Style="color: #000000"></RadzenTextBox>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LONGITUDE" class="rz-text" />
+            <RadzenTextBox Style="color: #000000"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
     <RadzenLabel Text="PHOTOS" class="rz-text" />
     <RadzenFileInput TValue="dynamic"></RadzenFileInput>
 
-    <RadzenButton Text="ADD" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+    <RadzenRow>
+        <RadzenButton Text="ADD" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
 </RadzenStack>
         );
 
@@ -217,39 +251,163 @@
 
     private async Task FilterMyItems()
     {
-
+        List<Item> myItems = items.Where(Item => Item.OwnerId == userID).ToList();
+        items = myItems;
+        StateHasChanged();
     }
 
     private async Task Search()
     {
+        if (searchPhrase == "")
+        {
+            try
+            {
+                var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(storageToken)) return;
 
+                var response = await Client.GetItems(storageToken);
+
+                if (response != null)
+                {
+                    items = response;
+                    chosenItem = items[0];
+                    location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                    isLoading = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while loading data: {ex.Message}");
+            }
+            finally
+            {
+                StateHasChanged();
+            }
+        }
     }
 
     private async Task EditItem()
     {
+        bool? result = await DialogService.OpenAsync("Add item", ds =>
+        @<RadzenStack Gap="1rem">
+    <RadzenLabel Text="TITLE" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Title"></RadzenTextBox>
 
+    <RadzenLabel Text="DESCRIPTION" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Description"></RadzenTextBox>
+
+    <RadzenLabel Text="CATEGORY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Category"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.PricePerDay" TValue="decimal"></RadzenNumeric>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="CURRENCY" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Currency"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="CITY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.City"></RadzenTextBox>
+
+    <RadzenLabel Text="STREET" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Street"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="HOUSE NUMBER" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.HouseNumber"></RadzenTextBox>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="POSTAL CODE" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.PostalCode"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="COUNTRY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Country"></RadzenTextBox>
+
+    <RadzenLabel Text="ADDRESS LABEL" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.AddressLabel"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LATITUDE" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Latitude" TValue="double"></RadzenNumeric>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LONGITUDE" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Longitude" TValue="double"></RadzenNumeric>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="PHOTOS" class="rz-text" />
+    
+
+    <RadzenUpload Multiple="true"
+                  Accept="image/*"
+                  Change=@OnImageChange
+                  Style="width: 100%"
+                  ChooseText="Wybierz zdjęcia" />
+
+    <RadzenRow>
+        <RadzenButton Text="ADD" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
+</RadzenStack>
+        );
+
+        if (result == true)
+        {
+            // <RadzenFileInput TValue="dynamic" @bind-Value="chosenItem.Photos"></RadzenFileInput>
+            // dopisać wysylanie i walidacje
+        }
     }
 
     private async Task DeleteItem()
     {
+        bool? result = await DialogService.OpenAsync("Remove item", ds =>
+        @<RadzenStack Gap="1.5rem">
+    <p>Are you sure, that you want to remove your item?</p>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenButton Text="YES" Click="() => ds.Close(true)" Style="width: 80px !important; background-color: rgb(217,84,79) !important;" />
+            <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 80px !important;" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenStack>
+        );
 
+        if (result == true)
+        {
+            // dopisać filtrowanie
+            items = items;
+        }
     }
 
     private async Task Filter()
     {
         bool? result = await DialogService.OpenAsync("Filter", ds =>
         @<RadzenStack Gap="1rem">
-    <RadzenLabel Text="CATEGORY" Style="color: rgb(133,133,133)" />
+    <RadzenLabel Text="CATEGORY" class="rz-text" Style="color: rgb(133,133,133)" />
     <RadzenTextBox Style="color: #000000"></RadzenTextBox>
 
-    <RadzenLabel Text="LOCATION" Style="color: rgb(133,133,133)" />
+    <RadzenLabel Text="LOCATION" class="rz-text" Style="color: rgb(133,133,133)" />
     <RadzenTextBox Style="color: #000000"></RadzenTextBox>
 
-    <RadzenLabel Text="AVAILABILITY" Style="color: rgb(133,133,133)" />
+    <RadzenLabel Text="AVAILABILITY" class="rz-text" Style="color: rgb(133,133,133)" />
     <RadzenTextBox Style="color: #000000"></RadzenTextBox>
 
-    <RadzenButton Text="FILTER" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+    <RadzenRow>
+        <RadzenButton Text="FILTER" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
 </RadzenStack>
         );
 
@@ -266,5 +424,21 @@
         location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
         StateHasChanged();
         Console.WriteLine("Pressed: " + chosenItem.Title);
+    }
+
+    async Task OnImageChange(UploadChangeEventArgs args)
+    {
+        foreach (var file in args.Files)
+        {
+            using (var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024))
+            {
+                var buffer = new byte[file.Size];
+                await stream.ReadAsync(buffer);
+
+                string base64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+                chosenItem.Photos.Add(base64);
+            }
+        }
     }
 }
