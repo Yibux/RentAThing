@@ -5,7 +5,9 @@ using RentalSystem.Shared.Models;
 using RentalSystem.Shared.Protos;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -102,7 +104,7 @@ namespace RentalSystem.Client.Desktop
 
                 if (response.Success)
                 {
-                    MessageBox.Show("Status zaktualizowany!");
+                    MessageBox.Show("Status updated!");
                     await LoadListings();
 
                     SelectedListing = null;
@@ -124,24 +126,45 @@ namespace RentalSystem.Client.Desktop
             if (lbItems.SelectedItem is ListingViewModel selected)
             {
                 SelectedListing = selected;
-                txtReason.Text = "";
+
+                // Tworzymy anonimowy obiekt tylko z ważnymi danymi (żeby pominąć wielkie zdjęcia)
+                var debugData = new
+                {
+                    ID = selected.Id,
+                    Title = selected.Title,
+                    Status = selected.Status,
+                    // To jest kluczowe pole, które chcemy sprawdzić:
+                    RAW_REASON_FROM_MODEL = selected.Model.RejectionReason,
+                    VIEWMODEL_REASON = selected.RejectionReason
+                };
+
+                // Serializacja do ładnego JSONa
+                string json = JsonSerializer.Serialize(debugData, new JsonSerializerOptions { WriteIndented = true });
+
+                // Wyświetl w oknie dialogowym - nie da się tego przegapić
+                MessageBox.Show(json, "DEBUG - Zawartość Obiektu");
+
+                // Oraz wrzuć w konsolę Output w Visual Studio
+                Debug.WriteLine("---------------- SELECTION DEBUG ----------------");
+                Debug.WriteLine(json);
             }
             else
             {
                 SelectedListing = null;
+                Debug.WriteLine("-------------TO JEST NULLEM------------");
             }
         }
 
-        private void BtnApprove_Click(object sender, RoutedEventArgs e) => SendModerationDecision("APPROVED", null);
+        private void BtnApprove_Click(object sender, RoutedEventArgs e) => SendModerationDecision(AppConstants.APPROVED, null);
 
         private void BtnReject_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtReason.Text))
+            if (string.IsNullOrWhiteSpace(SelectedListing.RejectionReason))
             {
-                MessageBox.Show("Podaj powód!");
+                MessageBox.Show("Give reason!");
                 return;
             }
-            SendModerationDecision("REJECTED", txtReason.Text);
+            SendModerationDecision(AppConstants.REJECTED, SelectedListing.RejectionReason);
         }
 
         private Item MapToDomain(ItemGrpcModel protoItem)
@@ -157,6 +180,7 @@ namespace RentalSystem.Client.Desktop
                 Status = protoItem.Status,
                 OwnerId = protoItem.OwnerId,
                 Photos = protoItem.Photos.ToList(),
+                RejectionReason = protoItem.RejectionReason ?? "",
                 Location = new ItemLocation
                 {
                     City = protoItem.Location.City,

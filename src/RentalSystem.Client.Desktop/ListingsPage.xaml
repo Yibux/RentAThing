@@ -4,7 +4,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
-      Title="Weryfikacja Ogłoszeń">
+      Title="Listing Verification">
 
     <Grid Background="#F5F5F5">
         <Grid.ColumnDefinitions>
@@ -19,7 +19,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="Oczekujące ogłoszenia" FontSize="18" FontWeight="SemiBold" 
+                <TextBlock Text="Pending Listings" FontSize="18" FontWeight="SemiBold" 
                            VerticalAlignment="Center" Margin="20,0" Foreground="#333"/>
 
                 <ListBox x:Name="lbItems" Grid.Row="1" BorderThickness="0" 
@@ -71,7 +71,7 @@
                 <TextBlock Text="{Binding SelectedListing.Title}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" Foreground="#333"/>
                 <TextBlock Text="{Binding SelectedListing.Id}" Foreground="#AAA" Margin="0,0,0,20"/>
 
-                <TextBlock Text="ZDJĘCIA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
+                <TextBlock Text="PHOTOS" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
 
                 <ItemsControl ItemsSource="{Binding SelectedListing.Photos}">
                     <ItemsControl.ItemsPanel>
@@ -88,7 +88,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Text="OPIS" FontWeight="Bold" Foreground="#888" Margin="0,20,0,5"/>
+                <TextBlock Text="DESCRIPTION" FontWeight="Bold" Foreground="#888" Margin="0,20,0,5"/>
                 <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
                     <TextBlock Text="{Binding SelectedListing.Description}" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
                 </Border>
@@ -100,14 +100,14 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                        <TextBlock Text="CENA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
+                        <TextBlock Text="PRICE" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
                         <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
                             <TextBlock Text="{Binding SelectedListing.PriceDisplay}" FontSize="18" FontWeight="Bold"/>
                         </Border>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                        <TextBlock Text="LOKALIZACJA" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
+                        <TextBlock Text="LOCATION" FontWeight="Bold" Foreground="#888" Margin="0,0,0,5"/>
                         <Border Background="White" Padding="15" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="{Binding SelectedListing.Location.City}" FontWeight="Bold"/>
@@ -119,17 +119,61 @@
 
                 <Border Background="#E3F2FD" BorderBrush="#2196F3" BorderThickness="1" CornerRadius="5" Padding="20" Margin="0,30,0,0">
                     <StackPanel>
-                        <TextBlock Text="Decyzja Administratora" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" Foreground="#0D47A1"/>
+                        <TextBlock Text="Admin Decision" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" Foreground="#0D47A1"/>
 
-                        <TextBlock Text="Powód odrzucenia (wymagane przy odrzuceniu):" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtReason" Height="60" TextWrapping="Wrap" AcceptsReturn="True" BorderBrush="#AAA" Padding="5"/>
+                        <TextBlock Text="{Binding SelectedListing.StatusMessage}" 
+                   Foreground="{Binding SelectedListing.StatusColor}" 
+                   FontWeight="Bold" 
+                   FontSize="14" 
+                   Margin="0,0,0,15"
+                   HorizontalAlignment="Center"/>
+
+                        <StackPanel Margin="0,5,0,15">
+
+                            <TextBlock Text="Rejection reason:" Margin="0,0,0,5" Foreground="#555"/>
+
+                            <Border Background="#FFEBEE" BorderBrush="#FFCDD2" BorderThickness="1" CornerRadius="4" Padding="10"
+            Visibility="{Binding SelectedListing.RejectedReasonTextVisibility}">
+                                <TextBlock Text="{Binding SelectedListing.RejectionReason}" 
+                   TextWrapping="Wrap" 
+                   Foreground="#D32F2F" 
+                   FontStyle="Italic"/>
+                            </Border>
+
+                            <TextBox x:Name="txtReason" 
+                                 Height="60" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True" 
+                                 BorderBrush="#AAA" 
+                                 Padding="5"
+         
+                                 Text="{Binding SelectedListing.RejectionReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+         
+                                 Visibility="{Binding SelectedListing.ReasonInputVisibility}"
+                                 IsEnabled="{Binding SelectedListing.IsRejectEnabled}"/>
+
+                        </StackPanel>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-                            <Button Content="ODRZUĆ" Background="#D9534F" Foreground="White" FontWeight="Bold" 
-                                    Width="120" Height="35" Margin="0,0,10,0" Click="BtnReject_Click"/>
 
-                            <Button Content="ZATWIERDŹ" Background="#5CB85C" Foreground="White" FontWeight="Bold" 
-                                    Width="120" Height="35" Click="BtnApprove_Click"/>
+                            <Button Content="REJECT" 
+                    Background="#D9534F" 
+                    Foreground="White" 
+                    FontWeight="Bold" 
+                    Width="120" 
+                    Height="35" 
+                    Margin="0,0,10,0" 
+                    Click="BtnReject_Click"
+                    IsEnabled="{Binding SelectedListing.IsRejectEnabled}"/>
+
+                            <Button Content="APPROVE" 
+                    Background="#5CB85C" 
+                    Foreground="White" 
+                    FontWeight="Bold" 
+                    Width="120" 
+                    Height="35" 
+                    Click="BtnApprove_Click"
+                    IsEnabled="{Binding SelectedListing.IsApproveEnabled}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

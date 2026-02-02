@@ -1,9 +1,11 @@
 ﻿using RentalSystem.Shared.Models;
+using RentalSystem.Shared.AppConstants;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -23,18 +25,49 @@ namespace RentalSystem.Client.Desktop
         public string Title => Model.Title;
         public string Description => Model.Description;
         public string Category => Model.Category;
-
-        public string PriceDisplay => $"{Model.PricePerDay} {Model.Currency} / dzień";
-
+        public string PriceDisplay => $"{Model.PricePerDay} {Model.Currency} / day";
         public string Status => Model.Status;
         public ItemLocation Location => Model.Location;
+        public string RejectionReason
+        {
+            get => Model.RejectionReason;
+            set
+            {
+                if (Model.RejectionReason != value)
+                {
+                    Model.RejectionReason = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+
+        public bool IsApproveEnabled => Status != AppConstants.APPROVED;
+        public bool IsRejectEnabled => Status != AppConstants.REJECTED;
+
+        public Visibility RejectedReasonTextVisibility =>
+            Status == AppConstants.REJECTED ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility ReasonInputVisibility =>
+            (Status != AppConstants.REJECTED)
+            ? Visibility.Visible : Visibility.Collapsed;
+
+        public string StatusMessage
+        {
+            get
+            {
+                if (Status == AppConstants.APPROVED) return "✅ APPROVED";
+                if (Status == AppConstants.REJECTED) return "⛔ REJECTED";
+                return "⏳ PENDING";
+            }
+        }
 
         public Brush StatusColor
         {
             get
             {
-                if (Model.Status == "APPROVED") return Brushes.Green;
-                if (Model.Status == "REJECTED") return Brushes.Red;
+                if (Status == AppConstants.APPROVED) return Brushes.Green;
+                if (Status == AppConstants.REJECTED) return Brushes.Red;
                 return Brushes.Orange;
             }
         }
@@ -79,7 +112,6 @@ namespace RentalSystem.Client.Desktop
                 }
                 catch (Exception)
                 {
-                    
                 }
             }
         }

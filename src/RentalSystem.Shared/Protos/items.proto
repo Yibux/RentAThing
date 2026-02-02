@@ -29,8 +29,9 @@ message ItemGrpcModel {
   string currency = 6;
   string status = 7;
   string owner_id = 8;
-  repeated string photos = 9;
-  GrpcLocation location = 10;
+  string rejection_reason = 9;
+  repeated string photos = 10;
+  GrpcLocation location = 11;
 }
 
 

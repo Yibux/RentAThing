@@ -32,6 +32,7 @@ namespace RentalSystem.Backend.Services
                     Currency = item.Currency,
                     Status = item.Status,
                     OwnerId = item.OwnerId,
+                    RejectionReason = item.RejectionReason ?? "",
 
                     Location = new GrpcLocation
                     {
