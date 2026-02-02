@@ -58,6 +58,19 @@ namespace RentalSystem.Backend.Controllers
             return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] CreateItemDto dto)
+        {
+            var success = await _itemsService.UpdateItemAsync(id, dto);
+
+            if (!success)
+            {
+                return NotFound($"Nie znaleziono przedmiotu o ID: {id}");
+            }
+
+            return NoContent();
+        }
+
         [HttpPatch("{id}/moderate")]
         public async Task<IActionResult> Moderate(string id, [FromBody] ModerateItemDto dto)
         {

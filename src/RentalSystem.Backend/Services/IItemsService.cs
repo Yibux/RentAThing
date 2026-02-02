@@ -11,6 +11,7 @@ namespace RentalSystem.Backend.Services
         Task<Item> AddItemAsync(string ownerId, CreateItemDto dto);
         Task<bool> ModerateItemAsync(string id, ModerateItemDto dto);
         Task<bool> DeleteItemAsync(string id);
+        Task<bool> UpdateItemAsync(string id, CreateItemDto dto);
     }
 
     public interface IRentalsService

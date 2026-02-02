@@ -110,5 +110,43 @@ namespace RentalSystem.Backend.Services
             await docRef.DeleteAsync();
             return true;
         }
+
+        public async Task<bool> UpdateItemAsync(string id, CreateItemDto dto)
+        {
+            var docRef = _firestore.Collection(CollectionName).Document(id);
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists) return false;
+
+            var item = snapshot.ConvertTo<Item>();
+            item.Id = id;
+
+            item.Title = dto.Title;
+            item.Description = dto.Description;
+            item.Category = dto.Category;
+            item.PricePerDay = dto.PricePerDay;
+            item.Currency = dto.Currency;
+
+            if (dto.Photos != null)
+            {
+                item.Photos = dto.Photos;
+            }
+
+            item.Location = new ItemLocation
+            {
+                City = dto.Location.City,
+                Street = dto.Location.Street,
+                HouseNumber = dto.Location.HouseNumber,
+                PostalCode = dto.Location.PostalCode,
+                Country = dto.Location.Country,
+                AddressLabel = dto.Location.AddressLabel,
+                Latitude = dto.Location.Latitude,
+                Longitude = dto.Location.Longitude
+            };
+
+            await docRef.SetAsync(item);
+
+            return true;
+        }
     }
 }
