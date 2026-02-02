@@ -18,5 +18,7 @@ namespace RentalSystem.Backend.Services
         Task<List<Rental>> GetAllRentalsAsync();
         Task<List<Rental>> GetUserRentalsAsync(string userId);
         Task<string> CreateRentalAsync(string borrowerId, CreateRentalDto dto);
+        Task<bool> UpdateRentalAsync(string rentalId, string userId, UpdateRentalDto dto);
+        Task<bool> RateOwnerAsync(string rentalId, string borrowerId, int rating);
     }
 }
