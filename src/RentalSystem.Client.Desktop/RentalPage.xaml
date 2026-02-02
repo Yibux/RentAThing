@@ -18,9 +18,9 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-            <TextBlock Text="Wszystkie Wypożyczenia" 
+            <TextBlock Text="All Rentals" 
                        FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
-            <Button Content="Odśwież" 
+            <Button Content="Refresh" 
                     Click="Refresh_Click"
                     Margin="20,0,0,0" Padding="10,5"/>
         </StackPanel>
@@ -45,15 +45,15 @@
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Od" Binding="{Binding StartDate, StringFormat=dd.MM.yyyy}" Width="90"/>
-                <DataGridTextColumn Header="Do" Binding="{Binding EndDate, StringFormat=dd.MM.yyyy}" Width="90"/>
-                <DataGridTextColumn Header="Cena" Binding="{Binding Price, StringFormat={}{0:C}}" Width="80"/>
+                <DataGridTextColumn Header="From" Binding="{Binding StartDate, StringFormat=dd.MM.yyyy}" Width="90"/>
+                <DataGridTextColumn Header="To" Binding="{Binding EndDate, StringFormat=dd.MM.yyyy}" Width="90"/>
+                <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}{0:C}}" Width="80"/>
 
                 <DataGridTextColumn Header="Item ID" Binding="{Binding ItemId}" Width="120"/>
-                <DataGridTextColumn Header="Właściciel" Binding="{Binding OwnerId}" Width="120"/>
-                <DataGridTextColumn Header="Wypożyczający" Binding="{Binding BorrowerId}" Width="120"/>
+                <DataGridTextColumn Header="OwnerId" Binding="{Binding OwnerId}" Width="120"/>
+                <DataGridTextColumn Header="BorrowerId" Binding="{Binding BorrowerId}" Width="120"/>
 
-                <DataGridTemplateColumn Header="Akcje" Width="*">
+                <DataGridTemplateColumn Header="Actions" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="Cancel rental" 
