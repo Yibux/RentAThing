@@ -126,6 +126,20 @@ namespace RentalSystem.Client.Web.RestClientNS
             return "Error: Item wasn't created";
         }
 
+        public async Task<string> DeleteItem(string token, string id)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.DeleteAsync("/api/Items/" + id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success: Item deleted successfully";
+            }
+
+            return "Error: Item wasn't deleted";
+        }
+
         public async Task<List<Rental>?> GetRentals(string token)
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

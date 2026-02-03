@@ -113,6 +113,12 @@
                         <RadzenText Text="@successMessage"
                                     Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
                     }
+
+                    @if (errorMessage != "")
+                    {
+                        <RadzenText Text="@errorMessage"
+                                    Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                    }
                 </RadzenRow>
 
                 <RadzenGoogleMap Zoom="15" Center=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) MapId="6ad1a7f620fedeb42b2f1504"
@@ -138,11 +144,12 @@
     private string successMessage = "";
     private decimal price = 0.0m;
     private string popUpErrorMessage = "";
+    private string errorMessage = "";
 
-    private CreateItemDto createItemDto = new CreateItemDto 
-    { 
+    private CreateItemDto createItemDto = new CreateItemDto
+    {
         Location = new ItemLocationDto(),
-        Photos = new List<string>() 
+        Photos = new List<string>()
     };
 
     private Item chosenItem = new()
@@ -370,9 +377,12 @@
 
     private async Task HandleAddSubmit(DialogService ds, CreateItemDto dto, Action<string> setError)
     {
-        if (string.IsNullOrEmpty(dto.Title) || dto.PricePerDay <= 0)
+        if (string.IsNullOrEmpty(dto.Title) || dto.PricePerDay <= 0 || string.IsNullOrEmpty(dto.Description) || string.IsNullOrEmpty(dto.Category) || string.IsNullOrEmpty(dto.Currency)
+            || string.IsNullOrEmpty(dto.Location.City) || string.IsNullOrEmpty(dto.Location.Street) || string.IsNullOrEmpty(dto.Location.HouseNumber) || string.IsNullOrEmpty(dto.Location.PostalCode)
+            || string.IsNullOrEmpty(dto.Location.Country) || string.IsNullOrEmpty(dto.Location.AddressLabel) || dto.Location.Latitude == null || dto.Location.Longitude == null
+            || dto.Photos.Count == 0)
         {
-            setError("Title and Price are required!");
+            setError("All fields are required!");
             return;
         }
 
@@ -448,6 +458,10 @@
             {
                 StateHasChanged();
             }
+        }
+        else
+        {
+            //wyszukiwanie
         }
     }
 
@@ -549,8 +563,29 @@
 
         if (result == true)
         {
-            // dopisać filtrowanie
-            items = items;
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var response = await Client.DeleteItem(token, chosenItem.Id);
+
+            if (response.StartsWith("Success"))
+            {
+                successMessage = response;
+
+                var response_2 = await Client.GetItems(token);
+
+                if (response_2 != null)
+                {
+                    items = response_2;
+                    chosenItem = items[0];
+                    location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                    isLoading = false;
+                    StateHasChanged();
+                }
+            }
+
+            else
+            {
+                errorMessage = response;
+            }
         }
     }
 
@@ -583,6 +618,7 @@
 
     void OnItemClick(Item item)
     {
+        successMessage = "";
         chosenItem = item;
         location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
         StateHasChanged();
@@ -591,15 +627,12 @@
 
     async Task OnImageChange(UploadChangeEventArgs args)
     {
-        // Czyścimy listę przed dodaniem nowych,
-        // lub zostawiamy, jeśli chcesz pozwalać na dodawanie "na raty"
         createItemDto.Photos = new List<string>();
 
         foreach (var file in args.Files)
         {
             try
             {
-                // Ograniczenie rozmiaru (np. 5MB na zdjęcie)
                 long maxFileSize = 1024 * 1024 * 5;
                 using (var stream = file.OpenReadStream(maxFileSize))
                 {

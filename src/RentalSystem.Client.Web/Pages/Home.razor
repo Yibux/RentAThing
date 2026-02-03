@@ -8,7 +8,7 @@
 @if (items != null && items.Any())
 {
     <RadzenGoogleMap Zoom="6" Center=@(new GoogleMapPosition() { Lat = 52.0, Lng = 19.0 }) MarkerClick=@OnMarkerClick MapId="6ad1a7f620fedeb42b2f1504"
-                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs">
+                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs" @key="items.Count">
         <Markers>
             @foreach (var item in items)
             {
@@ -88,6 +88,12 @@ else if (isLoading)
                     <RadzenText Text="@successMessage"
                                 Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
                 }
+
+                @if (errorMessage != "")
+                {
+                    <RadzenText Text="@errorMessage"
+                                Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                }
             </RadzenRow>
         }
     </RadzenRow>
@@ -99,6 +105,7 @@ else if (isLoading)
     private bool isLoading = true;
     private string userID = "";
     private string successMessage = "";
+    private string errorMessage = "";
     private string location = "";
     private decimal price = 0.0m;
     private Item chosenItem = new()
@@ -360,8 +367,29 @@ else if (isLoading)
 
         if (result == true)
         {
-            // dopisaæ filtrowanie
-            items = items;
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var response = await Client.DeleteItem(token, chosenItem.Id);
+
+            if (response.StartsWith("Success"))
+            {
+                successMessage = response;
+
+                var response_2 = await Client.GetItems(token);
+
+                if (response_2 != null)
+                {
+                    items = response_2;
+                    chosenItem = items[0];
+                    location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                    isLoading = false;
+                    StateHasChanged();
+                }
+            }
+
+            else
+            {
+                errorMessage = response;
+            }
         }
     }
 
