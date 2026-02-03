@@ -1,5 +1,6 @@
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /*    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -15,13 +16,14 @@ a, .btn-link {
 }
 
 .btn-primary {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -115,4 +117,55 @@ code {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+.rz-text {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+    color: #888888 !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+}
+
+.rz-title {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 26px !important;
+    font-weight: bold !important;
+    color: #333333 !important;
+}
+
+.app-name {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 36px !important;
+    font-weight: bold !important;
+    color: white !important;
+}
+
+.rz-button {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+    color: white !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    background-color: #2d3e50 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 10px !important;
+}
+
+.rz-button:hover {
+    filter: brightness(1.2);
+}
+
+.rz-button:disabled {
+    filter: brightness(1.2);
+}
+
+.rz-textbox.rz-state-disabled,
+.rz-textbox:disabled {
+    background-color: white !important;
+    color: #888888 !important;
+    opacity: 1 !important;
+    cursor: default !important;
+    border-color: #e6e6e6 !important;
 }

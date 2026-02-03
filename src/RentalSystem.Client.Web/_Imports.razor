@@ -12,3 +12,13 @@
 @using RentalSystem.Client.Web.Layout
 @using Radzen
 @using Radzen.Blazor
+
+@using RentalSystem.Client.Web.RestClientNS
+@using RentalSystem.Shared.Models
+@using RentalSystem.Shared.DTOs
+
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@inject RestClient Client
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthProvider

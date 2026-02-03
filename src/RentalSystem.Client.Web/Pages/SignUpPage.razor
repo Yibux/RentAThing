@@ -1,60 +1,57 @@
 @page "/signUp"
-@using RentalSystem.Shared.DTOs
-@using RentalSystem.Client.Web.Http
-@using System.Text.RegularExpressions
-@inject UsersApiClient Client
 @layout EmptyLayout
-@inject IJSRuntime JS
+@using System.Text.RegularExpressions
+
 
 <PageTitle>Sign up</PageTitle>
 
 <div style="width: 100%; height: 100vh; display: flex; padding: 0px">
     <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 100); display: flex; font-size: 30px; padding: 0px">
-        <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
+        <RadzenText Text="RentAThing" class="app-name" Style=" margin: auto; width: 200px; text-align: center;" />
     </RadzenColumn>
 
     <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px; visibility: visible; text-align: center">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
-            <RadzenText Text="Sign up" Style="margin: auto; width: 200px; text-align: left; font-size: 40px; margin-bottom: 20px" />
+            <RadzenText Text="Sign up" class="rz-title" Style="margin: auto; width: 200px; text-align: left; margin-bottom: 20px" />
 
             @if (errorVisibility)
             {
-                <RadzenText Text="@errorMessage"
-                            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                <RadzenText Text="@errorMessage" class="rz-text"
+                            Style=" font-weight: normal !important; margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
             }
 
             @if (successVisibility)
             {
-                <RadzenText Text="@successMessage"
-                            Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+                <RadzenText Text="@successMessage" class="rz-text"
+                            Style=" font-weight: normal !important; margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
             }
 
-            <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="EMAIL" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Email" />
 
-            <RadzenText Text="Name" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="NAME" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Name" />
 
-            <RadzenText Text="Surname" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="SURNAME" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.Surname" />
 
-            <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="PASSWORD" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
-            <RadzenText Text="Password needs to be at least 6 characters long." Style="font-size: 10px; width: 200px; margin: auto; text-align: left" />
+            <RadzenText Text="Password needs to be at least 6 characters long." class="rz-text" Style=" font-weight: normal !important; font-size: 10px !important; width: 200px; margin: auto; text-align: left" />
 
-            <RadzenText Text="Repeat password" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="REPEAT PASSWORD" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="repeatedPassword" />
 
-            <RadzenText Text="Phone number" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="PHONE NUMBER" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="userRequest.PhoneNumber" />
 
-            <RadzenButton Text="Sign up"
+            <RadzenButton Text="SIGN UP" class="rz-button"
                           Click="@(async () => await Task.Run(async () => await SignUp()))"
                           Disabled="@(string.IsNullOrEmpty(userRequest.Email))"
                           IsBusy="@false"
                           ButtonType="ButtonType.Button" Style="width: 150px; margin: auto; margin-top: 20px" />
 
-            <RadzenText Style="margin-top: 15px; font-size: 13px">
+            <RadzenText class="rz-text" Style="margin-top: 15px; font-size: 13px; font-weight: normal !important;">
                 Already have an account?
                 <a href="/signIn" style="color: rgba(45, 62, 80, 100)">Sign in!</a>
             </RadzenText>
@@ -78,7 +75,13 @@
         }
     }
 
-    private CreateUserRequest userRequest = new CreateUserRequest();
+    private CreateUserRequest userRequest = new CreateUserRequest
+    {
+        Email = "",
+        Name = "",
+        Surname = "",
+        PhoneNumber = ""
+    };
     private string password = "";
     private string repeatedPassword = "";
     private string errorMessage = "";

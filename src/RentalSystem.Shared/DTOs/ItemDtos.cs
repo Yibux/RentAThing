@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace RentalSystem.Shared.DTOs
+﻿namespace RentalSystem.Shared.DTOs
 {
     public class CreateItemDto
     {

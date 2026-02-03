@@ -1,8 +1,440 @@
 @layout MainLayout
 @page "/"
+@attribute [Authorize]
+
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (items != null && items.Any())
+{
+    <RadzenGoogleMap Zoom="6" Center=@(new GoogleMapPosition() { Lat = 52.0, Lng = 19.0 }) MarkerClick=@OnMarkerClick MapId="6ad1a7f620fedeb42b2f1504"
+                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs" @key="items.Count">
+        <Markers>
+            @foreach (var item in items)
+            {
+                <RadzenGoogleMapMarker Title="@($"{item.Title} | {item.Id}")"
+                                       Position=@(new GoogleMapPosition() { Lat = item.Location.Latitude, Lng = item.Location.Longitude }) />
+            }
+        </Markers>
+    </RadzenGoogleMap>
+}
+else if (isLoading)
+{
+    <p>Loading map and items...</p>
+}
 
-Welcome to your new app.
+@if (chosenItem.Title != null)
+{
+    <RadzenRow Style="margin: 20px 0px ;display: flex; flex-direction: column; background-color: #ffffff; height: 100%; padding: 20px; border-radius: 5px; box-shadow: 0 0px 12px rgba(0,0,0,0.15);">
+        @if (chosenItem.Title != null)
+        {
+            <RadzenLabel Text="@chosenItem.Title" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
+            <RadzenLabel Text="@chosenItem.Id" class="rz-text" />
+
+            <div class="d-flex flex-wrap">
+                @foreach (var img in chosenItem.Photos)
+                {
+                    <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
+                }
+            </div>
+
+            <RadzenLabel Text="DESCRIPTION" class="rz-text" Style="margin-top: 20px" />
+            <RadzenTextBox Value="@chosenItem.Description" Disabled="true" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenRow Style="margin-top: 20px">
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="CATEGORY" class="rz-text" />
+                    <RadzenTextBox Value="@chosenItem.Category" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="STATUS" class="rz-text" />
+                    <RadzenTextBox Value="@chosenItem.Status" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="OWNER RATING" class="rz-text" />
+                    @* <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox> *@
+                    <RadzenNumeric @bind-Value="ownerRating"
+                                   TValue="double"
+                                   Format="0.0"
+                                   ReadOnly="true"
+                                   Style="color: #000000;" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-top: 20px">
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
+                    <RadzenTextBox Value="@chosenItem.PricePerDay.ToString()" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="LOCATION" class="rz-text" />
+                    <RadzenTextBox Value="@location" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-top: 40px">
+                @if (chosenItem.OwnerId != userID)
+                {
+                    <RadzenButton Text="RENT" Click="@Rent" class="rz-button" Style="width: 150px; margin: auto"></RadzenButton>
+                }
+                else
+                {
+                    <RadzenButton Text="EDIT" Click="@EditItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto"></RadzenButton>
+                    <RadzenButton Text="DELETE" Click="@DeleteItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto; background-color: rgb(217,84,79) !important;"></RadzenButton>
+                }
+            </RadzenRow>
+
+            <RadzenRow Style="margin-top: 20px">
+                @if (successMessage != "")
+                {
+                    <RadzenText Text="@successMessage"
+                                Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+                }
+
+                @if (errorMessage != "")
+                {
+                    <RadzenText Text="@errorMessage"
+                                Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                }
+            </RadzenRow>
+        }
+    </RadzenRow>
+}
+
+
+@code {
+    private List<Item> items = new();
+    private bool isLoading = true;
+    private string userID = "";
+    private string successMessage = "";
+    private string errorMessage = "";
+    private string location = "";
+    private decimal price = 0.0m;
+    private double ownerRating;
+    private Item chosenItem = new()
+    {
+        Title = ""
+    };
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(storageToken)) return;
+
+            var response = await Client.GetItems(storageToken);
+
+            if (response != null && response.Any())
+            {
+                items = response;
+                chosenItem = items[0];
+                location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                isLoading = false;
+
+                var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(token)) return;
+
+                var response_2 = await Client.GetUserProfileById(token, chosenItem.OwnerId);
+
+                if (response_2 != null)
+                {
+                    ownerRating = response_2.AverageRating;
+                }
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(storageToken)) return;
+
+                var response_2 = await Client.GetUserProfile(storageToken);
+
+                if (response_2 != null)
+                {
+                    UserProfile user = response_2;
+                    await JS.InvokeAsync<string>("sessionStorage.setItem", "userID", user.Id);
+
+                    userID = await JS.InvokeAsync<string>("sessionStorage.getItem", "userID");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while loading data: {ex.Message}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while loading data: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    async void OnMarkerClick(RadzenGoogleMapMarker marker)
+    {
+        successMessage = "";
+        errorMessage = "";
+        var parts = marker.Title.Split('|');
+        if (parts.Length > 1)
+        {
+            var itemId = parts[1].Trim();
+            chosenItem = items.FirstOrDefault(i => i.Id == itemId);
+
+            if (chosenItem != null)
+            {
+                location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+
+                var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(token)) return;
+
+                var response_2 = await Client.GetUserProfileById(token, chosenItem.OwnerId);
+
+                if (response_2 != null)
+                {
+                    ownerRating = response_2.AverageRating;
+                }
+
+                StateHasChanged();
+            }
+        }
+    }
+
+
+    private async Task Rent()
+    {
+        DateTime rentalStart = DateTime.Today;
+        DateTime rentalEnd = DateTime.Today.AddDays(1);
+
+        void CalculatePrice()
+        {
+            int days = (rentalEnd - rentalStart).Days;
+            price = (days > 0) ? days * chosenItem.PricePerDay : chosenItem.PricePerDay;
+        }
+
+        CalculatePrice();
+        string popUpErrorMessage = "";
+
+        await DialogService.OpenAsync("Rent " + chosenItem.Title, ds =>
+        @<RadzenStack Gap="1rem">
+            <RadzenLabel Text="START DATE" class="rz-text" />
+            <RadzenDatePicker @bind-Value="rentalStart"
+                              DateFormat="dd.MM.yyyy"
+                              Change="@(args => { rentalStart = (DateTime)args; CalculatePrice(); ds.Refresh(); })" />
+
+            <RadzenLabel Text="END DATE" class="rz-text" />
+            <RadzenDatePicker @bind-Value="rentalEnd"
+                              DateFormat="dd.MM.yyyy"
+                              Change="@(args => { rentalEnd = (DateTime)args; CalculatePrice(); ds.Refresh(); })" />
+
+            <RadzenLabel Text="TOTAL PRICE" class="rz-text" />
+            <RadzenTextBox Value="@($"{price} {chosenItem.Currency}")"
+                           Style="color: #000000; font-weight: normal;"
+                           ReadOnly="true" />
+
+        @if (!string.IsNullOrEmpty(popUpErrorMessage))
+        {
+                <RadzenText Text="@popUpErrorMessage"
+                            Style="color: red; background-color: #ffeaea; padding: 10px; border: 1px solid red; font-size: 12px;" />
+        }
+
+    <RadzenRow>
+        <RadzenButton Text="RENT" Click="async () => await HandleRentSubmit(ds, rentalStart, rentalEnd, (msg) => { popUpErrorMessage = msg; ds.Refresh(); })"
+                      Style="width: 150px; margin: auto" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" Style="width: 150px; margin: auto" />
+    </RadzenRow>
+</RadzenStack>
+        );
+    }
+
+    private async Task HandleRentSubmit(DialogService ds, DateTime start, DateTime end, Action<string> setError)
+    {
+        if (start < DateTime.Today || end < DateTime.Today)
+        {
+            setError("Dates cannot be in the past.");
+            return;
+        }
+        if (start >= end)
+        {
+            setError("Start date must be before end date.");
+            return;
+        }
+
+        try
+        {
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var dto = new CreateRentalDto
+            {
+                ItemId = chosenItem.Id,
+                StartDate = DateTime.SpecifyKind(start, DateTimeKind.Utc),
+                EndDate = DateTime.SpecifyKind(end, DateTimeKind.Utc)
+            };
+            var result = await Client.CreateRental(dto, token);
+
+            if (result.StartsWith("Success"))
+            {
+                ds.Close(true);
+                setError("");
+                successMessage = "Rental requested successfully";
+            }
+            else
+            {
+                setError("API Error: " + result);
+            }
+        }
+        catch (Exception ex)
+        {
+            setError("Connection error.");
+        }
+    }
+
+    private async Task EditItem()
+    {
+        bool? result = await DialogService.OpenAsync("Add item", ds =>
+        @<RadzenStack Gap="1rem">
+    <RadzenLabel Text="TITLE" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Title"></RadzenTextBox>
+
+    <RadzenLabel Text="DESCRIPTION" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Description"></RadzenTextBox>
+
+    <RadzenLabel Text="CATEGORY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Category"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.PricePerDay" TValue="decimal"></RadzenNumeric>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="CURRENCY" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Currency"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="CITY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.City"></RadzenTextBox>
+
+    <RadzenLabel Text="STREET" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Street"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="HOUSE NUMBER" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.HouseNumber"></RadzenTextBox>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="POSTAL CODE" class="rz-text" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.PostalCode"></RadzenTextBox>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="COUNTRY" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Country"></RadzenTextBox>
+
+    <RadzenLabel Text="ADDRESS LABEL" class="rz-text" />
+    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.AddressLabel"></RadzenTextBox>
+
+    <RadzenRow>
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LATITUDE" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Latitude" TValue="double"></RadzenNumeric>
+        </RadzenColumn>
+
+        <RadzenColumn Style="display: flex; flex-direction: column;">
+            <RadzenLabel Text="LONGITUDE" class="rz-text" />
+            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Longitude" TValue="double"></RadzenNumeric>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenLabel Text="PHOTOS" class="rz-text" />
+
+
+    <RadzenUpload Multiple="true"
+                  Accept="image/*"
+                  Change=@OnImageChange
+                  Style="width: 100%"
+                  ChooseText="Wybierz zdjêcia" />
+
+    <RadzenRow>
+        <RadzenButton Text="ADD" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
+</RadzenStack>
+        );
+
+        if (result == true)
+        {
+            // <RadzenFileInput TValue="dynamic" @bind-Value="chosenItem.Photos"></RadzenFileInput>
+            // dopisaæ wysylanie i walidacje
+        }
+    }
+
+    private async Task DeleteItem()
+    {
+        bool? result = await DialogService.OpenAsync("Remove item", ds =>
+        @<RadzenStack Gap="1.5rem">
+    <p>Are you sure, that you want to remove your item?</p>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenButton Text="YES" Click="() => ds.Close(true)" Style="width: 80px !important; background-color: rgb(217,84,79) !important;" />
+            <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 80px !important;" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenStack>
+        );
+
+        if (result == true)
+        {
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var response = await Client.DeleteItem(token, chosenItem.Id);
+
+            if (response.StartsWith("Success"))
+            {
+                successMessage = response;
+
+                var response_2 = await Client.GetItems(token);
+
+                if (response_2 != null)
+                {
+                    items = response_2;
+                    chosenItem = items[0];
+                    location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
+                    isLoading = false;
+                    StateHasChanged();
+                }
+            }
+
+            else
+            {
+                errorMessage = response;
+            }
+        }
+    }
+
+    async Task OnImageChange(UploadChangeEventArgs args)
+    {
+        foreach (var file in args.Files)
+        {
+            using (var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024))
+            {
+                var buffer = new byte[file.Size];
+                await stream.ReadAsync(buffer);
+
+                string base64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+                chosenItem.Photos.Add(base64);
+            }
+        }
+    }
+}

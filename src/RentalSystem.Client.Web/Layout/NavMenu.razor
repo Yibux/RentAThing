@@ -27,8 +27,9 @@
                 <span class="bi bi-cart-check" aria-hidden="true"></span> My rentals
             </NavLink>
         </div>
-        <div class="nav-item px-3" style="border: 0px none rgba(0,0,0,0); border-top: 1px solid rgba(0, 0, 0, 100); margin-left: 20px; margin-right: 20px">
-            <RadzenButton Text="Log out" Click="@(async () => await Task.Run(async () => await LogOut()))" ButtonType="ButtonType.Button" Style="margin-top: 20px; text-align: center; height: 29px; width: 100%; background-color: rgb(217,84,79); color: rgb(255,255,255); border: 0px outset #000000" />
+        <RadzenRow Style="width: 80%; margin: auto; border-bottom: 1px solid #999999; height: 2px"></RadzenRow>
+        <div class="nav-item px-3" style="border: 0px none rgba(0,0,0,0); border-top: 1px none rgba(0, 0, 0, 100); margin-left: 20px; margin-right: 20px">
+            <RadzenButton Text="Log out" Click="@(async () => await Task.Run(async () => await LogOut()))" ButtonType="ButtonType.Button" Style="margin-top: 20px; text-align: center; height: 29px; width: 100%; background-color: rgb(217,84,79) !important; border: 0px outset #000000" />
         </div>
     </nav>
 </div>

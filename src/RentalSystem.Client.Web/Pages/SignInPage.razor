@@ -1,76 +1,75 @@
 @page "/signIn"
+@using System.Text.RegularExpressions
 @layout EmptyLayout
-@inject IJSRuntime JS
-@inject NavigationManager NavManager
 
 
 <PageTitle>Sign in</PageTitle>
 
 <div style="width: 100%; height: 100vh; display: flex; padding: 0px">
-    <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 100); display: flex; font-size: 30px; padding: 0px">
-        <RadzenText Text="RentAThing" Style="margin: auto; width: 200px; text-align: center; color: rgb(255,255,255)" />
+    <RadzenColumn Style="width: 60%; background-color: rgba(45, 62, 80, 1); display: flex; font-size: 30px; padding: 0px">
+        <RadzenText Text="RentAThing" class="app-name" Style=" margin: auto; width: 200px; text-align: center;" />
     </RadzenColumn>
 
-    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,100); padding: 0px">
+    <RadzenColumn Style="width: 40%; display: flex; background-color: rgba(241,242,246,1); padding: 0px">
         <RadzenColumn Style="text-align: center; display: grid; width: 250px; margin: auto">
 
             @if (signInVisibility)
             {
-                <RadzenText Text="Sign in" Style="margin: auto; width: 200px; text-align: left; font-size: 40px; margin-bottom: 20px" />
+                <RadzenText Text="Sign in" class="rz-title" Style="margin: auto; width: 200px; text-align: left; margin-bottom: 20px" />
             }
 
             @if (!signInVisibility)
             {
-                <RadzenText Text="Change password" Style="margin: auto; width: 200px; text-align: left; font-size: 20px; margin-bottom: 20px" />
+                <RadzenText Text="Change password" class="rz-title" Style="margin: auto; width: 200px; text-align: left; margin-bottom: 20px" />
             }
 
             @if (successVisibility)
             {
-                <RadzenText Text="@successMessage"
-                            Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+                <RadzenText Text="@successMessage" class="rz-text"
+                            Style=" font-weight: normal !important; margin: auto; width: 200px; text-align: center; color: #00b600 !important; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
             }
 
             @if (errorVisibility)
             {
-                <RadzenText Text="@errorMessage"
-                            Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                <RadzenText Text="@errorMessage" class="rz-text"
+                            Style=" font-weight: normal !important; margin: auto; width: 200px; text-align: center; color: red !important; background-color: rgba(255, 211, 211, 1); border: 2px solid #ff0000; margin-bottom: 10px" />
             }
 
-            <RadzenText Text="Email" Style="margin: auto; width: 200px; text-align: left" />
+            <RadzenText Text="EMAIL" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
             <RadzenTextBox Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="email" />
 
 
             @if (signInVisibility)
             {
-                <RadzenText Text="Password" Style="margin: auto; width: 200px; text-align: left" />
+                <RadzenText Text="PASSWORD" class="rz-text" Style="margin: auto; width: 200px; text-align: left" />
                 <RadzenPassword Style="margin: auto; margin-top: 5px; margin-bottom: 10px; width: 200px" @bind-Value="password" />
 
-                <RadzenButton Text="Sign in" Click="@SignIn" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+                <RadzenButton Text="SIGN IN" Click="@SignIn" class="rz-button" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; text-align: center" />
             }
 
             @if (!signInVisibility)
             {
-                <RadzenButton Text="Change password" Click="@ChangePassword" Style="width: 150px; display: flex; margin: auto; height: 30px; margin-top: 10px; font-style: normal; text-align: center" />
+                <RadzenButton Text="CHANGE PASSWORD" Click="@ChangePassword" class="rz-button" Style="width: 200px; display: flex; margin: auto; margin-top: 10px; text-align: center" />
             }
 
-            <RadzenText Style="margin-top: 15px; font-size: 13px; margin-bottom: 0px">
+            <RadzenText class="rz-text" Style="margin-top: 15px; font-size: 13px; margin-bottom: 0px; font-weight: normal !important;">
                 Don't have an account yet?
-                <a href="/signUp" style="color: rgba(45, 62, 80, 100)">Sign up!</a>
+                <a href="/signUp" style="color: rgba(45, 62, 80, 1) !important">Sign up!</a>
             </RadzenText>
 
             @if (!signInVisibility)
             {
-                <RadzenText Style="font-size: 13px; margin-bottom: 0px">
+                <RadzenText class="rz-text" Style="font-size: 13px; margin-bottom: 0px; font-weight: normal !important;">
                     Already have an account?
-                    <a @onclick="ShowSignIn" style="color: rgba(45, 62, 80, 100); cursor: pointer; text-decoration: underline; cursor: pointer">Log in!</a>
+                    <a @onclick="ShowSignIn" style="color: rgba(45, 62, 80, 1) !important; cursor: pointer; text-decoration: underline; cursor: pointer">Log in!</a>
                 </RadzenText>
             }
 
             @if (signInVisibility)
             {
-                <RadzenText Style="font-size: 13px; margin-bottom: 0px">
+                <RadzenText class="rz-text" Style="font-size: 13px; margin-bottom: 0px; font-weight: normal !important;">
                     Forgot your password?
-                    <a @onclick="ShowChangePassword" style="color: rgba(45, 62, 80, 100); cursor: pointer; text-decoration: underline; cursor: pointer">Click here</a>
+                    <a @onclick="ShowChangePassword" style="color: rgba(45, 62, 80, 1) !important; cursor: pointer; text-decoration: underline; cursor: pointer">Click here</a>
                 </RadzenText>
             }
         </RadzenColumn>
@@ -111,6 +110,18 @@
 
         await Task.Yield();
 
+        if (email == "" || password == "")
+        {
+            ShowError("Fill all the fields");
+            return;
+        }
+
+        if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase))
+        {
+            ShowError("Invalid email");
+            return;
+        }
+
         var result = await JS.InvokeAsync<FirebaseAuthResponse>("firebaseAuth.login", email, password);
 
         if (result.Success)
@@ -120,6 +131,8 @@
 
             var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
             Console.WriteLine("Storage token " + storageToken);
+
+            ((TestAuthenticationStateProvider)AuthProvider).NotifyAuthenticationStateChanged();
 
             NavManager.NavigateTo("/");
         }
@@ -174,6 +187,18 @@
 
     async Task ChangePassword()
     {
+        if (email == "")
+        {
+            ShowError("Fill all the fields");
+            return;
+        }
+
+        if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase))
+        {
+            ShowError("Invalid email");
+            return;
+        }
+
         var result = await JS.InvokeAsync<FirebaseAuthResponse>("firebaseAuth.passwordReset", email);
         if (result.Success)
         {
