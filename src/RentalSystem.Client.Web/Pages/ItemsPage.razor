@@ -28,7 +28,6 @@
                                 @onclick="@(() => OnItemClick(item))">
                         <RadzenRow Style="display: flex; align-items: center;">
                             <RadzenColumn Size="8" Style="display: flex; flex-direction: row; align-items: center;">
-                                @* <RadzenImage Path="@item.Photos[0]" Style="width: 50px; height: 50px" /> *@
                                 @if (item.Photos != null && item.Photos.Any())
                                 {
                                     <RadzenImage Path="@item.Photos[0]" Style="width: 50px; height: 50px" />
@@ -79,7 +78,12 @@
 
                     <RadzenColumn Style="display: flex; flex-direction: column;">
                         <RadzenLabel Text="OWNER RATING" class="rz-text" />
-                        <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                        @* <RadzenTextBox Value="@ownerRating Disabled="true" Style="color: #000000"></RadzenTextBox> *@
+                        <RadzenNumeric @bind-Value="ownerRating"
+                                       TValue="double"
+                                       Format="0.0"
+                                       ReadOnly="true"
+                                       Style="color: #000000;" />
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -147,6 +151,7 @@
     private string errorMessage = "";
     private string filterCategory = "";
     private string filterLocation = "";
+    private double ownerRating = 10.0;
 
     private CreateItemDto createItemDto = new CreateItemDto
     {
@@ -178,6 +183,13 @@
                 chosenItem = items[0];
                 location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
                 isLoading = false;
+
+                var response_2 = await Client.GetUserProfileById(storageToken, chosenItem.OwnerId);
+
+                if (response_2 != null)
+                {
+                    ownerRating = response_2.AverageRating;
+                }
             }
 
             userID = await JS.InvokeAsync<string>("sessionStorage.getItem", "userID");
@@ -659,13 +671,23 @@
         }
     }
 
-    void OnItemClick(Item item)
+    async void OnItemClick(Item item)
     {
         successMessage = "";
         chosenItem = item;
         location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
         StateHasChanged();
-        Console.WriteLine("Pressed: " + chosenItem.Title);
+        // Console.WriteLine("Pressed: " + chosenItem.Title);
+
+        var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token)) return;
+
+        var response_2 = await Client.GetUserProfileById(token, chosenItem.OwnerId);
+
+        if (response_2 != null)
+        {
+            ownerRating = response_2.AverageRating;
+        }
     }
 
     async Task OnImageChange(UploadChangeEventArgs args)

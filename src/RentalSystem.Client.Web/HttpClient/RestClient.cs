@@ -66,6 +66,20 @@ namespace RentalSystem.Client.Web.RestClientNS
             return null;
         }
 
+        public async Task<UserProfile?> GetUserProfileById(string token, string id)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("/api/Users/" + id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<UserProfile>();
+            }
+
+            return null;
+        }
+
         public async Task<string> DeleteUserProfile(string token, string id)
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

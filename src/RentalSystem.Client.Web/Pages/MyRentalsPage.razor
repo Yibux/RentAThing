@@ -21,7 +21,7 @@
                                      Style="width: 55px; height: 55px; border-radius: 4px; object-fit: cover; border: 1px solid #eee; cursor: pointer" />
 
                         <RadzenStack Gap="2px" Style="flex-grow: 1; min-width: 0; cursor: pointer">
-                            <RadzenLabel Text="Wiertarka Udarowa Bosch Professional"
+                            <RadzenLabel Text="@($"{item.ItemId}")"
                                          Style="color: #000000; font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer" />
 
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" AlignItems="AlignItems.Center" Style="cursor: pointer">
@@ -44,13 +44,13 @@
     <RadzenColumn Size="8" Style="display: flex; flex-direction: column; background-color: #ffffff; height: 100%; padding: 20px; border-radius: 5px; box-shadow: 0 0px 12px rgba(0,0,0,0.15);">
         @if (chosenRental.BorrowerId != "" && chosenItem.Title != "")
         {
-            <RadzenLabel Text="Wiertarka Udarowa Bosch Professional" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
-            <RadzenLabel Text="@chosenRental.ItemId" class="rz-text" />
+            <RadzenLabel Text="@chosenItem.Title" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
+            <RadzenLabel Text="@chosenItem.Id" class="rz-text" />
 
             <div class="d-flex flex-wrap">
-                @if (chosenRental.Photos != null)
+                @if (chosenItem.Photos != null)
                 {
-                    @foreach (var img in chosenRental.Photos)
+                    @foreach (var img in chosenItem.Photos)
                     {
                         <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
                     }
@@ -75,7 +75,7 @@
                 </RadzenColumn>
                 <RadzenColumn Style="display: flex; flex-direction: column;">
                     <RadzenLabel Text="OWNER" class="rz-text" />
-                    <RadzenTextBox Value="Jan Kowalski" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    <RadzenTextBox Value="@($" {owner.Name} {owner.Surname}")" Disabled="true" Style="color: #000000"></RadzenTextBox>
                 </RadzenColumn>
             </RadzenRow>
 
@@ -93,7 +93,12 @@
 
                 <RadzenColumn Style="display: flex; flex-direction: column;">
                     <RadzenLabel Text="OWNER RATING" class="rz-text" />
-                    <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    @* <RadzenTextBox Value="@owner.AverageRating" Disabled="true" Style="color: #000000"></RadzenTextBox> *@
+                    <RadzenNumeric @bind-Value="@owner.AverageRating"
+                                   TValue="double"
+                                   Format="0.0"
+                                   ReadOnly="true"
+                                   Style="color: #000000;" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -124,6 +129,7 @@
     private List<Rental> rentals = new();
     private string location = "";
     private double rate = 0.0;
+    private UserProfile owner = new();
     private Rental chosenRental = new Rental
     {
         BorrowerId = ""
@@ -131,18 +137,6 @@
     private Item chosenItem = new Item
     {
         Title = ""
-    };
-
-    private List<Rental> test = new()
-    {
-        new Rental
-        {
-            ItemId = "test",
-            Photos = new List<string> { "favicon.png" },
-            Price = 500.0m,
-            StartDate = new DateTime(2026, 3, 1),
-            EndDate = new DateTime(2026, 3, 10),
-        }
     };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -159,6 +153,22 @@
             if (response != null)
             {
                 rentals = response;
+                chosenRental = rentals[0];
+
+                var response_2 = await Client.GetUserProfileById(storageToken, chosenRental.OwnerId);
+
+                if (response_2 != null)
+                {
+                    owner = response_2;
+                }
+
+                var response_3 = await Client.GetItem(storageToken, chosenRental.ItemId);
+
+                if (response_3 != null)
+                {
+                    chosenItem = response_3;
+                    location = $"{chosenItem.Location.Street} {chosenItem.Location.HouseNumber}, {chosenItem.Location.PostalCode} {chosenItem.Location.City}";
+                }
             }
         }
         catch (Exception ex)
@@ -187,6 +197,13 @@
             {
                 chosenItem = response;
                 location = $"{chosenItem.Location.Street} {chosenItem.Location.HouseNumber}, {chosenItem.Location.PostalCode} {chosenItem.Location.City}";
+
+                var response_2 = await Client.GetUserProfileById(storageToken, chosenRental.OwnerId);
+
+                if (response_2 != null)
+                {
+                    owner = response_2;
+                }
             }
         }
         catch (Exception ex)

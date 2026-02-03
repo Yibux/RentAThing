@@ -54,7 +54,12 @@ else if (isLoading)
 
                 <RadzenColumn Style="display: flex; flex-direction: column;">
                     <RadzenLabel Text="OWNER RATING" class="rz-text" />
-                    <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    @* <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox> *@
+                    <RadzenNumeric @bind-Value="ownerRating"
+                                   TValue="double"
+                                   Format="0.0"
+                                   ReadOnly="true"
+                                   Style="color: #000000;" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -108,6 +113,7 @@ else if (isLoading)
     private string errorMessage = "";
     private string location = "";
     private decimal price = 0.0m;
+    private double ownerRating;
     private Item chosenItem = new()
     {
         Title = ""
@@ -131,6 +137,16 @@ else if (isLoading)
                 chosenItem = items[0];
                 location = chosenItem.Location.City + ", " + chosenItem.Location.AddressLabel;
                 isLoading = false;
+
+                var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(token)) return;
+
+                var response_2 = await Client.GetUserProfileById(token, chosenItem.OwnerId);
+
+                if (response_2 != null)
+                {
+                    ownerRating = response_2.AverageRating;
+                }
             }
 
             try
@@ -163,7 +179,7 @@ else if (isLoading)
         }
     }
 
-    void OnMarkerClick(RadzenGoogleMapMarker marker)
+    async void OnMarkerClick(RadzenGoogleMapMarker marker)
     {
         successMessage = "";
         errorMessage = "";
@@ -176,6 +192,17 @@ else if (isLoading)
             if (chosenItem != null)
             {
                 location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+
+                var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(token)) return;
+
+                var response_2 = await Client.GetUserProfileById(token, chosenItem.OwnerId);
+
+                if (response_2 != null)
+                {
+                    ownerRating = response_2.AverageRating;
+                }
+
                 StateHasChanged();
             }
         }
