@@ -6,63 +6,132 @@
 <PageTitle>My rentals</PageTitle>
 
 
-<RadzenColumn>
+<RadzenRow Style="height: 100%; color: #ffffff; background-color: rgba(255, 255, 255, 0.01); margin-bottom: 15px">
 
-    @if (rentals != null)
-    {
-        <RadzenDataList TItem="Rental" Data="@rentals" WrapItems="true" Style="width: 100%;">
+    <RadzenColumn Size="4" Style="display: flex;  flex-direction: column; align-items: center;">
+
+        <RadzenDataList TItem="Rental" Data="@rentals" WrapItems="true" Style="width: 100%; margin-top: -5px">
             <Template Context="item">
-                <RadzenCard Style="width: 200px; cursor: pointer; height: 115px; margin: auto; padding: 10px; margin-bottom: 10px"
+                <RadzenCard Style="width: 100%; cursor: pointer; padding: 12px; background-color: #ffffff; border: 1px solid #e0e0e0;"
                             @onclick="@(() => OnItemClick(item))">
-                    <RadzenRow Style="display: flex; align-items: center;">
 
-                        <RadzenColumn Size="8" Style="display: flex; flex-direction: column; ">
-                            <RadzenRow Style="display: flex; flex-direction: row; align-items: center;">
-                                <RadzenImage Path="@item.Photos[0]" Style="width: 50px; height: 50px" />
-                                <RadzenLabel Text="@item.ItemId" class="rz-text"
-                                             Style="
-                                            padding-left: 10px;
-                                            white-space: nowrap;
-                                            overflow: hidden;
-                                            text-overflow: ellipsis;
-                                            flex-grow: 1;
-                                            cursor: pointer;
-                                            display: flex;
-                                            align-items: center;
-                                            text-align: left;" />
-                            </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="15px" Style="cursor: pointer">
 
-                            <RadzenLabel Text="@($"Start date: {item.StartDate.ToString("dd.MM.yyyy")}")" class="rz-text" Style="color: rgb(133,133,133); font-size: 15px" />
-                            <RadzenLabel Text="@($"End date: {item.EndDate.ToString("dd.MM.yyyy")}")" class="rz-text" Style="color: rgb(133,133,133); font-size: 15px" />
-                        </RadzenColumn>
+                        <RadzenImage Path="@item.Photos[0]"
+                                     Style="width: 55px; height: 55px; border-radius: 4px; object-fit: cover; border: 1px solid #eee; cursor: pointer" />
 
+                        <RadzenStack Gap="2px" Style="flex-grow: 1; min-width: 0; cursor: pointer">
+                            <RadzenLabel Text="Wiertarka Udarowa Bosch Professional"
+                                         Style="color: #000000; font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer" />
 
-                        <RadzenColumn Size="4" Style="display: flex; align-items: center; justify-content: flex-end;">
-                            <RadzenLabel Text="@($"{item.Price} PLN")" class="rz-text" Style="color: black; font-size: 20px;" />
-                        </RadzenColumn>
-                    </RadzenRow>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" AlignItems="AlignItems.Center" Style="cursor: pointer">
+                                <RadzenLabel Text="@($"{item.StartDate:dd.MM.yyyy} - {item.EndDate:dd.MM.yyyy}")"
+                                             class="rz-text" style="cursor: pointer" />
+                            </RadzenStack>
+                        </RadzenStack>
+
+                        <RadzenStack AlignItems="AlignItems.End" Style="min-width: 90px; cursor: pointer">
+                            <RadzenLabel Text="@($"{item.Price} PLN")"
+                                         Style="color: #000000; font-size: 11px; font-weight: 800; cursor: pointer" />
+                        </RadzenStack>
+
+                    </RadzenStack>
                 </RadzenCard>
             </Template>
         </RadzenDataList>
-    }
-</RadzenColumn>
+    </RadzenColumn>
+
+    <RadzenColumn Size="8" Style="display: flex; flex-direction: column; background-color: #ffffff; height: 100%; padding: 20px; border-radius: 5px; box-shadow: 0 0px 12px rgba(0,0,0,0.15);">
+        @if (chosenRental.BorrowerId != "" && chosenItem.Title != "")
+        {
+            <RadzenLabel Text="Wiertarka Udarowa Bosch Professional" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
+            <RadzenLabel Text="@chosenRental.ItemId" class="rz-text" />
+
+            <div class="d-flex flex-wrap">
+                @if (chosenRental.Photos != null)
+                {
+                    @foreach (var img in chosenRental.Photos)
+                    {
+                        <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
+                    }
+                }
+            </div>
+
+            <RadzenRow Style="margin-top: 20px">
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="START DATE" class="rz-text" />
+                    <RadzenDatePicker @bind-Value="chosenRental.StartDate" ReadOnly="true"></RadzenDatePicker>
+                </RadzenColumn>
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="END DATE" class="rz-text" />
+                    <RadzenDatePicker @bind-Value="chosenRental.EndDate" ReadOnly="true"></RadzenDatePicker>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-top: 20px">
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="PRICE" class="rz-text" />
+                    <RadzenTextBox Value="@chosenRental.Price.ToString()" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="OWNER" class="rz-text" />
+                    <RadzenTextBox Value="Jan Kowalski" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+            </RadzenRow>
 
 
-@* "borrowerId": "3ZmVtP7tt1bN8J7LQgw1nLIVirz2",
-    "createdAt": "2026-01-26T02:31:08.593725Z",
-    "endDate": "2026-01-26T02:23:44.571Z",
-    "id": "174z5Y1vWDApHukPamsU",
-    "isRated": false,
-    "itemId": "FC5N7yD5h0Jw3o12TRxZ",
-    "ownerId": "YAoP1ifVRGZBw1JELOM1qA6OkJ52",
-,
-    "startDate": "2026-01-26T02:23:44.571Z",
-    "status": "REQUESTED" *@
+            <RadzenRow Style="margin-top: 20px">
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="CATEGORY" class="rz-text" />
+                    <RadzenTextBox Value="@chosenItem.Category" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="STATUS" class="rz-text" />
+                    <RadzenTextBox Value="@chosenRental.Status" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="OWNER RATING" class="rz-text" />
+                    <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenColumn Style="display: flex; flex-direction: column; margin-top: 20px">
+                <RadzenLabel Text="ADDRESS" class="rz-text" />
+                <RadzenTextBox Value="@location" Disabled="true" Style="color: #000000"></RadzenTextBox>
+            </RadzenColumn>
+
+            <RadzenButton Text="RATE" Click="@RateOwner" class="rz-button" Style="width: 150px; margin-top: 40px !important; margin: auto"></RadzenButton>
+
+            <RadzenGoogleMap Zoom="15" Center=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) MapId="6ad1a7f620fedeb42b2f1504"
+                             Style="height: 200px; width: 100%; margin-top: 20px" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs">
+                <Markers>
+                    <RadzenGoogleMapMarker Title="@($"{chosenRental.Id}")"
+                                           Position=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) />
+
+                </Markers>
+            </RadzenGoogleMap>
+        }
+
+    </RadzenColumn>
+
+</RadzenRow>
 
 
 
 @code {
     private List<Rental> rentals = new();
+    private string location = "";
+    private double rate = 0.0;
+    private Rental chosenRental = new Rental
+    {
+        BorrowerId = ""
+    };
+    private Item chosenItem = new Item
+    {
+        Title = ""
+    };
 
     private List<Rental> test = new()
     {
@@ -71,8 +140,8 @@
             ItemId = "test",
             Photos = new List<string> { "favicon.png" },
             Price = 500.0m,
-            StartDate = new DateTime(2026, 2, 1),
-            EndDate = new DateTime(2026, 2, 10),
+            StartDate = new DateTime(2026, 3, 1),
+            EndDate = new DateTime(2026, 3, 10),
         }
     };
 
@@ -102,8 +171,57 @@
         }
     }
 
+
     private async Task OnItemClick(Rental item)
     {
+        try
+        {
+            chosenRental = item;
 
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(storageToken)) return;
+
+            var response = await Client.GetItem(storageToken, item.ItemId);
+
+            if (response != null)
+            {
+                chosenItem = response;
+                location = $"{chosenItem.Location.Street} {chosenItem.Location.HouseNumber}, {chosenItem.Location.PostalCode} {chosenItem.Location.City}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task RateOwner()
+    {
+        bool? result = await DialogService.OpenAsync("Rate owner", ds =>
+        @<RadzenStack Gap="1rem">
+    <RadzenLabel Text="RATE" class="rz-text" />
+    <RadzenNumeric @bind-Value="rate"
+                   TValue="double"
+                   Step="0.5"
+                   Min="0"
+                   Max="5"
+                   InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "rate" }})"
+                   Style="width: 20%; color: #000000;" />
+
+    <RadzenRow>
+        <RadzenButton Text="RATE" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
+</RadzenStack>
+        );
+
+        if (result == true)
+        {
+            // dopisaæ rentowanie
+        }
     }
 }

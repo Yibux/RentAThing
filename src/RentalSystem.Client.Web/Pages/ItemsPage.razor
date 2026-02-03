@@ -33,7 +33,7 @@
                             </RadzenColumn>
 
                             <RadzenColumn Size="4" Style="display: flex; align-items: center; justify-content: flex-end;">
-                                <RadzenLabel Text="@($"{item.PricePerDay} {item.Currency} / day")" class="rz-text" Style="color: black !important; font-size: 11px;" />
+                                <RadzenLabel Text="@($"{item.PricePerDay} {item.Currency} / day")" class="rz-text" Style="color: black !important;" />
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenCard>
@@ -44,21 +44,41 @@
 
 
         <RadzenColumn Size="8" Style="display: flex; flex-direction: column; background-color: #ffffff; height: 100%; padding: 20px; border-radius: 5px; box-shadow: 0 0px 12px rgba(0,0,0,0.15);">
-            @if (chosenItem.Title != null)
+            @if (chosenItem.Title != "")
             {
                 <RadzenLabel Text="@chosenItem.Title" class="rz-title" Style="color: rgb(133,133,133); font-size: 20px" />
                 <RadzenLabel Text="@chosenItem.Id" class="rz-text" />
                 @* <RadzenImage Path="@chosenItem.Photos[0]" Style="width: 128px; height: 128px; margin-top: 20px" /> *@
 
                 <div class="d-flex flex-wrap">
-                    @foreach (var img in chosenItem.Photos)
+                    @if (chosenItem.Photos != null)
                     {
-                        <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
+                        @foreach (var img in chosenItem.Photos)
+                        {
+                            <img src="@img" style="width: 128px; height: 128px; margin-top: 20px; object-fit: cover;" />
+                        }
                     }
                 </div>
 
                 <RadzenLabel Text="DESCRIPTION" class="rz-text" Style="margin-top: 20px" />
                 <RadzenTextBox Value="@chosenItem.Description" Disabled="true" Style="color: #000000"></RadzenTextBox>
+
+                <RadzenRow Style="margin-top: 20px">
+                    <RadzenColumn Style="display: flex; flex-direction: column;">
+                        <RadzenLabel Text="CATEGORY" class="rz-text" />
+                        <RadzenTextBox Value="@chosenItem.Category" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    </RadzenColumn>
+
+                    <RadzenColumn Style="display: flex; flex-direction: column;">
+                        <RadzenLabel Text="STATUS" class="rz-text" />
+                        <RadzenTextBox Value="@chosenItem.Status" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    </RadzenColumn>
+
+                    <RadzenColumn Style="display: flex; flex-direction: column;">
+                        <RadzenLabel Text="OWNER RATING" class="rz-text" />
+                        <RadzenTextBox Value="4.5" Disabled="true" Style="color: #000000"></RadzenTextBox>
+                    </RadzenColumn>
+                </RadzenRow>
 
                 <RadzenRow Style="margin-top: 20px">
                     <RadzenColumn Style="display: flex; flex-direction: column;">
@@ -72,7 +92,7 @@
                     </RadzenColumn>
                 </RadzenRow>
 
-                <RadzenRow Style="margin-top: 40px">
+                <RadzenRow Style="margin-top: 20px">
                     @if (chosenItem.OwnerId != userID)
                     {
                         <RadzenButton Text="RENT" Click="@Rent" class="rz-button" Style="width: 150px; margin: auto"></RadzenButton>
@@ -83,6 +103,19 @@
                         <RadzenButton Text="DELETE" Click="@DeleteItem" class="rz-button" Style="width: 150px; margin-top: 40px; margin: auto; background-color: rgb(217,84,79) !important;"></RadzenButton>
                     }
                 </RadzenRow>
+
+
+                <RadzenGoogleMap Zoom="15" Center=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) MapId="6ad1a7f620fedeb42b2f1504"
+                                 Style="height: 200px; width: 100%; margin-top: 20px" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs">
+                    <Markers>
+
+                        @* <RadzenGoogleMapMarker Title="@item.Title"
+                                       Position=@(new GoogleMapPosition() { Lat = item.Location.Latitude, Lng = item.Location.Longitude }) /> *@
+                        <RadzenGoogleMapMarker Title="@($"{chosenItem.Title} | {chosenItem.Id}")"
+                                               Position=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) />
+
+                    </Markers>
+                </RadzenGoogleMap>
             }
 
         </RadzenColumn>
@@ -99,7 +132,7 @@
 
     private Item chosenItem = new()
     {
-        Title = "test",
+        Title = "",
         Photos = new List<string> { "favicon.png" },
         PricePerDay = 7.0m
     };
@@ -288,7 +321,7 @@
 
     private async Task EditItem()
     {
-        bool? result = await DialogService.OpenAsync("Add item", ds =>
+        bool? result = await DialogService.OpenAsync("Edit item", ds =>
         @<RadzenStack Gap="1rem">
     <RadzenLabel Text="TITLE" class="rz-text" />
     <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Title"></RadzenTextBox>
@@ -348,16 +381,16 @@
     </RadzenRow>
 
     <RadzenLabel Text="PHOTOS" class="rz-text" />
-    
+
 
     <RadzenUpload Multiple="true"
                   Accept="image/*"
                   Change=@OnImageChange
                   Style="width: 100%"
-                  ChooseText="Wybierz zdjęcia" />
+                  ChooseText="CHOOSE" />
 
     <RadzenRow>
-        <RadzenButton Text="ADD" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="EDIT" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
         <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
     </RadzenRow>
 </RadzenStack>
