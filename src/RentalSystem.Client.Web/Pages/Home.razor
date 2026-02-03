@@ -165,6 +165,8 @@ else if (isLoading)
 
     void OnMarkerClick(RadzenGoogleMapMarker marker)
     {
+        successMessage = "";
+        errorMessage = "";
         var parts = marker.Title.Split('|');
         if (parts.Length > 1)
         {

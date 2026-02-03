@@ -461,7 +461,28 @@
         }
         else
         {
-            //wyszukiwanie
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var allItems = await Client.GetItems(storageToken);
+
+            if (allItems != null)
+            {
+                items = allItems
+                    .Where(x => x.Title != null &&
+                                x.Title.Contains(searchPhrase, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (items.Any())
+                {
+                    chosenItem = items[0];
+                    location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+                }
+                else
+                {
+                    chosenItem = new Item { Title = "" };
+                }
+            }
+
+            StateHasChanged();
         }
     }
 
