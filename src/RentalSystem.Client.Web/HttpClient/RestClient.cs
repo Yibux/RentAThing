@@ -31,7 +31,6 @@ namespace RentalSystem.Client.Web.RestClientNS
             }
 
             return "Error: Account wasn't created";
-
         }
 
         public async Task<string> UpdateUser(UpdateUserRequest user, string token, string id)
@@ -109,6 +108,23 @@ namespace RentalSystem.Client.Web.RestClientNS
             return null;
         }
 
+        public async Task<string> CreateItem(CreateItemDto item, string token)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PostAsJsonAsync("/api/Items", item);
+
+            Console.WriteLine($"STATUS: {response.StatusCode}");
+
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success: Item created successfully";
+            }
+
+            return "Error: Item wasn't created";
+        }
 
         public async Task<List<Rental>?> GetRentals(string token)
         {
@@ -122,6 +138,24 @@ namespace RentalSystem.Client.Web.RestClientNS
             }
 
             return null;
+        }
+
+        public async Task<string> CreateRental(CreateRentalDto rental, string token)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PostAsJsonAsync("/api/Rentals", rental);
+
+            Console.WriteLine($"STATUS: {response.StatusCode}");
+
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success: Rental created successfully";
+            }
+
+            return "Error: Rental wasn't created";
         }
     }
 }

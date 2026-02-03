@@ -10,9 +10,9 @@
 
     <RadzenColumn Size="4" Style="display: flex;  flex-direction: column; align-items: center;">
 
-        <RadzenDataList TItem="Rental" Data="@rentals" WrapItems="true" Style="width: 100%; margin-top: -5px">
+        <RadzenDataList TItem="Rental" Data="@rentals" WrapItems="true" Style="width: 100%; margin-top: -7px">
             <Template Context="item">
-                <RadzenCard Style="width: 100%; cursor: pointer; padding: 12px; background-color: #ffffff; border: 1px solid #e0e0e0;"
+                <RadzenCard Style="width: 100%; cursor: pointer; padding: 12px; background-color: #ffffff; border: 1px solid #e0e0e0; box-shadow: 0 0px 12px rgba(0,0,0,0.15);"
                             @onclick="@(() => OnItemClick(item))">
 
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="15px" Style="cursor: pointer">

@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using Radzen;
 using RentalSystem.Client.Web;
 using RentalSystem.Client.Web.RestClientNS;
+using System.Globalization;
 using System.Security.Claims;
 
 
@@ -20,7 +21,6 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, TestAuthenticationStateProvider>();
 builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<DialogService>();
-
 
 await builder.Build().RunAsync();
 
