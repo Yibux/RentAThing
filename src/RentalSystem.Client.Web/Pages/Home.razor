@@ -8,7 +8,7 @@
 @if (items != null && items.Any())
 {
     <RadzenGoogleMap Zoom="6" Center=@(new GoogleMapPosition() { Lat = 52.0, Lng = 19.0 }) MarkerClick=@OnMarkerClick MapId="6ad1a7f620fedeb42b2f1504"
-                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs" @key="items.Count">
+                     Style="height: 400px; width: 100%;" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs" @key="@($"{chosenItem.Id}_{chosenItem.Location.Latitude}_{chosenItem.Location.Longitude}")">
         <Markers>
             @foreach (var item in items)
             {
@@ -111,6 +111,7 @@ else if (isLoading)
     private string userID = "";
     private string successMessage = "";
     private string errorMessage = "";
+    private string popUpErrorMessage = "";
     private string location = "";
     private decimal price = 0.0m;
     private double ownerRating;
@@ -298,85 +299,158 @@ else if (isLoading)
 
     private async Task EditItem()
     {
-        bool? result = await DialogService.OpenAsync("Add item", ds =>
+        popUpErrorMessage = "";
+
+        await DialogService.OpenAsync("Edit item", ds =>
         @<RadzenStack Gap="1rem">
-    <RadzenLabel Text="TITLE" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Title"></RadzenTextBox>
+            <RadzenLabel Text="TITLE" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Title" Style="color: #000000"></RadzenTextBox>
 
-    <RadzenLabel Text="DESCRIPTION" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Description"></RadzenTextBox>
+            <RadzenLabel Text="DESCRIPTION" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Description" Style="color: #000000"></RadzenTextBox>
 
-    <RadzenLabel Text="CATEGORY" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Category"></RadzenTextBox>
+            <RadzenLabel Text="CATEGORY" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Category" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenRow>
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
+                    <RadzenNumeric @bind-Value="chosenItem.PricePerDay"
+                                   TValue="decimal"
+                                   Min="0"
+                                   Format="0.00"
+                                   Style="color: #000000;" />
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="CURRENCY" class="rz-text" />
+                    <RadzenTextBox @bind-Value="chosenItem.Currency" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenLabel Text="CITY" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Location.City" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenLabel Text="STREET" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Location.Street" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenRow>
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="HOUSE NUMBER" class="rz-text" />
+                    <RadzenTextBox @bind-Value="chosenItem.Location.HouseNumber" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="POSTAL CODE" class="rz-text" />
+                    <RadzenTextBox @bind-Value="chosenItem.Location.PostalCode" Style="color: #000000"></RadzenTextBox>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenLabel Text="COUNTRY" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Location.Country" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenLabel Text="ADDRESS LABEL" class="rz-text" />
+            <RadzenTextBox @bind-Value="chosenItem.Location.AddressLabel" Style="color: #000000"></RadzenTextBox>
+
+            <RadzenRow>
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="LATITUDE" class="rz-text" />
+                    <RadzenNumeric @bind-Value="chosenItem.Location.Latitude"
+                                   TValue="double"
+                                   Format="0.00000000"
+                                   Style="color: #000000;" />
+                </RadzenColumn>
+
+                <RadzenColumn Style="display: flex; flex-direction: column;">
+                    <RadzenLabel Text="LONGITUDE" class="rz-text" />
+                    <RadzenNumeric @bind-Value="chosenItem.Location.Longitude"
+                                   TValue="double"
+                                   Format="0.00000000"
+                                   Style="color: #000000;" />
+                </RadzenColumn>
+            </RadzenRow>
+
+
+        @if (popUpErrorMessage != "")
+        {
+                <RadzenText Text="@popUpErrorMessage"
+                            Style="color: red; background-color: #ffeaea; padding: 10px; border: 1px solid red; font-size: 12px;" />
+        }
 
     <RadzenRow>
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="PRICE PER DAY" class="rz-text" />
-            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.PricePerDay" TValue="decimal"></RadzenNumeric>
-        </RadzenColumn>
-
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="CURRENCY" class="rz-text" />
-            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Currency"></RadzenTextBox>
-        </RadzenColumn>
-    </RadzenRow>
-
-    <RadzenLabel Text="CITY" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.City"></RadzenTextBox>
-
-    <RadzenLabel Text="STREET" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Street"></RadzenTextBox>
-
-    <RadzenRow>
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="HOUSE NUMBER" class="rz-text" />
-            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.HouseNumber"></RadzenTextBox>
-        </RadzenColumn>
-
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="POSTAL CODE" class="rz-text" />
-            <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.PostalCode"></RadzenTextBox>
-        </RadzenColumn>
-    </RadzenRow>
-
-    <RadzenLabel Text="COUNTRY" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.Country"></RadzenTextBox>
-
-    <RadzenLabel Text="ADDRESS LABEL" class="rz-text" />
-    <RadzenTextBox Style="color: #000000" @bind-Value="chosenItem.Location.AddressLabel"></RadzenTextBox>
-
-    <RadzenRow>
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="LATITUDE" class="rz-text" />
-            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Latitude" TValue="double"></RadzenNumeric>
-        </RadzenColumn>
-
-        <RadzenColumn Style="display: flex; flex-direction: column;">
-            <RadzenLabel Text="LONGITUDE" class="rz-text" />
-            <RadzenNumeric Style="color: #000000" @bind-Value="chosenItem.Location.Longitude" TValue="double"></RadzenNumeric>
-        </RadzenColumn>
-    </RadzenRow>
-
-    <RadzenLabel Text="PHOTOS" class="rz-text" />
-
-
-    <RadzenUpload Multiple="true"
-                  Accept="image/*"
-                  Change=@OnImageChange
-                  Style="width: 100%"
-                  ChooseText="Wybierz zdjêcia" />
-
-    <RadzenRow>
-        <RadzenButton Text="ADD" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
-        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="SAVE"
+                      Click="async () => await HandleEditSubmit(ds, (msg) => { popUpErrorMessage = msg; ds.Refresh(); })"
+                      Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)"
+                      Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
     </RadzenRow>
 </RadzenStack>
         );
+    }
 
-        if (result == true)
+    private async Task HandleEditSubmit(DialogService ds, Action<string> setError)
+    {
+        if (string.IsNullOrEmpty(chosenItem.Title) || chosenItem.PricePerDay <= 0 || string.IsNullOrEmpty(chosenItem.Description) || string.IsNullOrEmpty(chosenItem.Category) || string.IsNullOrEmpty(chosenItem.Currency)
+                || string.IsNullOrEmpty(chosenItem.Location.City) || string.IsNullOrEmpty(chosenItem.Location.Street) || string.IsNullOrEmpty(chosenItem.Location.HouseNumber) || string.IsNullOrEmpty(chosenItem.Location.PostalCode)
+                || string.IsNullOrEmpty(chosenItem.Location.Country) || string.IsNullOrEmpty(chosenItem.Location.AddressLabel) || chosenItem.Location.Latitude == null || chosenItem.Location.Longitude == null
+                || chosenItem.Photos.Count == 0 || chosenItem.Id == null)
         {
-            // <RadzenFileInput TValue="dynamic" @bind-Value="chosenItem.Photos"></RadzenFileInput>
-            // dopisaæ wysylanie i walidacje
+            setError("All fields are required!");
+            return;
+        }
+
+        try
+        {
+            CreateItemDto itemToEdit = new CreateItemDto
+            {
+                Title = chosenItem.Title,
+                Description = chosenItem.Description,
+                Category = chosenItem.Category,
+                PricePerDay = chosenItem.PricePerDay,
+                Currency = chosenItem.Currency,
+                Location = new ItemLocationDto
+                {
+                    City = chosenItem.Location.City,
+                    Street = chosenItem.Location.Street,
+                    HouseNumber = chosenItem.Location.HouseNumber,
+                    PostalCode = chosenItem.Location.PostalCode,
+                    Country = chosenItem.Location.Country,
+                    AddressLabel = chosenItem.Location.AddressLabel,
+                    Latitude = chosenItem.Location.Latitude,
+                    Longitude = chosenItem.Location.Longitude
+                },
+                Photos = chosenItem.Photos
+            };
+
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+
+            var result = await Client.EditItem(chosenItem.Id, itemToEdit, token);
+
+            if (result.StartsWith("Success"))
+            {
+                successMessage = "Item updated successfully!";
+                ds.Close(true);
+
+                var response = await Client.GetItems(token);
+                if (response != null)
+                {
+                    items = response;
+                    chosenItem = items.FirstOrDefault(i => i.Id == chosenItem.Id) ?? items[0];
+                    location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+                }
+            }
+            else
+            {
+                setError(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            setError("Error: " + ex.Message);
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 

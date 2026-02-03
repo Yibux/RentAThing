@@ -140,6 +140,24 @@ namespace RentalSystem.Client.Web.RestClientNS
             return "Error: Item wasn't created";
         }
 
+        public async Task<string> EditItem(string id, CreateItemDto item, string token)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync("/api/Items/" + id, item);
+
+            Console.WriteLine($"STATUS: {response.StatusCode}");
+
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success: Item edited successfully";
+            }
+
+            return "Error: Item wasn't edited";
+        }
+
         public async Task<string> DeleteItem(string token, string id)
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
