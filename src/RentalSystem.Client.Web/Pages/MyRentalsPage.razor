@@ -93,7 +93,6 @@
 
                 <RadzenColumn Style="display: flex; flex-direction: column;">
                     <RadzenLabel Text="OWNER RATING" class="rz-text" />
-                    @* <RadzenTextBox Value="@owner.AverageRating" Disabled="true" Style="color: #000000"></RadzenTextBox> *@
                     <RadzenNumeric @bind-Value="@owner.AverageRating"
                                    TValue="double"
                                    Format="0.0"
@@ -107,7 +106,24 @@
                 <RadzenTextBox Value="@location" Disabled="true" Style="color: #000000"></RadzenTextBox>
             </RadzenColumn>
 
-            <RadzenButton Text="RATE" Click="@RateOwner" class="rz-button" Style="width: 150px; margin-top: 40px !important; margin: auto"></RadzenButton>
+            @if (!chosenRental.IsRated)
+            {
+                <RadzenButton Text="RATE" Click="@RateOwner" class="rz-button" Style="width: 150px; margin-top: 40px !important; margin: auto"></RadzenButton>
+            }
+
+            <RadzenRow Style="margin-top: 20px">
+                @if (successMessage != "")
+                {
+                    <RadzenText Text="@successMessage"
+                                Style="margin: auto; width: 200px; text-align: center; color: #00b600; background-color: #bcffbb; border: 2px solid #00b600; margin-bottom: 10px" />
+                }
+
+                @if (errorMessage != "")
+                {
+                    <RadzenText Text="@errorMessage"
+                                Style="margin: auto; width: 200px; text-align: center; color: red; background-color: rgba(255, 211, 211, 100); border: 2px solid #ff0000; margin-bottom: 10px" />
+                }
+            </RadzenRow>
 
             <RadzenGoogleMap Zoom="15" Center=@(new GoogleMapPosition() { Lat = chosenItem.Location.Latitude, Lng = chosenItem.Location.Longitude }) MapId="6ad1a7f620fedeb42b2f1504"
                              Style="height: 200px; width: 100%; margin-top: 20px" ApiKey="AIzaSyCTG0rGmIK3FNSAhL6JTrTITC6Uh4ScVhs">
@@ -117,6 +133,10 @@
 
                 </Markers>
             </RadzenGoogleMap>
+        }
+        else
+        {
+            <p style="color: black">Loading...</p>
         }
 
     </RadzenColumn>
@@ -128,7 +148,9 @@
 @code {
     private List<Rental> rentals = new();
     private string location = "";
-    private double rate = 0.0;
+    private int rate = 0;
+    private string successMessage = "";
+    private string errorMessage = "";
     private UserProfile owner = new();
     private Rental chosenRental = new Rental
     {
@@ -222,8 +244,8 @@
         @<RadzenStack Gap="1rem">
     <RadzenLabel Text="RATE" class="rz-text" />
     <RadzenNumeric @bind-Value="rate"
-                   TValue="double"
-                   Step="0.5"
+                   TValue="int"
+                   Step="1"
                    Min="0"
                    Max="5"
                    InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "rate" }})"
@@ -238,7 +260,33 @@
 
         if (result == true)
         {
-            // dopisaæ rentowanie
+            try
+            {
+                var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(storageToken)) return;
+
+                var response = await Client.RateRental(chosenRental.Id, rate, storageToken);
+
+                if (response.StartsWith("Success"))
+                {
+                    successMessage = response;
+
+                    var response_2 = await Client.GetUserProfileById(storageToken, chosenRental.OwnerId);
+
+                    if (response_2 != null)
+                    {
+                        owner = response_2;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                StateHasChanged();
+            }
         }
     }
 }
