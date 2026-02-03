@@ -145,6 +145,8 @@
     private decimal price = 0.0m;
     private string popUpErrorMessage = "";
     private string errorMessage = "";
+    private string filterCategory = "";
+    private string filterLocation = "";
 
     private CreateItemDto createItemDto = new CreateItemDto
     {
@@ -614,26 +616,46 @@
     {
         bool? result = await DialogService.OpenAsync("Filter", ds =>
         @<RadzenStack Gap="1rem">
-    <RadzenLabel Text="CATEGORY" class="rz-text" Style="color: rgb(133,133,133)" />
-    <RadzenTextBox Style="color: #000000"></RadzenTextBox>
+            <RadzenLabel Text="CATEGORY" class="rz-text" Style="color: rgb(133,133,133)" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="filterCategory"></RadzenTextBox>
 
-    <RadzenLabel Text="LOCATION" class="rz-text" Style="color: rgb(133,133,133)" />
-    <RadzenTextBox Style="color: #000000"></RadzenTextBox>
+            <RadzenLabel Text="LOCATION (City or Address)" class="rz-text" Style="color: rgb(133,133,133)" />
+            <RadzenTextBox Style="color: #000000" @bind-Value="filterLocation"></RadzenTextBox>
 
-    <RadzenLabel Text="AVAILABILITY" class="rz-text" Style="color: rgb(133,133,133)" />
-    <RadzenTextBox Style="color: #000000"></RadzenTextBox>
-
-    <RadzenRow>
-        <RadzenButton Text="FILTER" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
-        <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
-    </RadzenRow>
-</RadzenStack>
-        );
+            <RadzenRow>
+                <RadzenButton Text="FILTER" Click="() => ds.Close(true)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+                <RadzenButton Text="CANCEL" Click="() => ds.Close(false)" Style="width: 150px; margin: auto" ButtonStyle="ButtonStyle.Light" />
+            </RadzenRow>
+        </RadzenStack>);
 
         if (result == true)
         {
-            // dopisać filtrowanie
-            items = items;
+            var storageToken = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            var allItems = await Client.GetItems(storageToken);
+
+            if (allItems != null)
+            {
+                items = allItems.Where(item =>
+                    (string.IsNullOrWhiteSpace(filterCategory) ||
+                     (item.Category != null && item.Category.Contains(filterCategory, StringComparison.OrdinalIgnoreCase)))
+                    &&
+                    (string.IsNullOrWhiteSpace(filterLocation) ||
+                     (item.Location.City != null && item.Location.City.Contains(filterLocation, StringComparison.OrdinalIgnoreCase)) ||
+                     (item.Location.AddressLabel != null && item.Location.AddressLabel.Contains(filterLocation, StringComparison.OrdinalIgnoreCase)))
+                ).ToList();
+
+                if (items.Any())
+                {
+                    chosenItem = items[0];
+                    location = $"{chosenItem.Location.City}, {chosenItem.Location.AddressLabel}";
+                }
+                else
+                {
+                    chosenItem = new Item { Title = null };
+                }
+
+                StateHasChanged();
+            }
         }
     }
 
